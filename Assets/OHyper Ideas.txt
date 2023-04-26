@@ -1,0 +1,30 @@
+Orientation Hypercube
+
+Base idea: Orientation cube, but 4D
+
+In addition to the left, right, clockwise, and counterclockwise buttons, add 'in' and 'out' buttons.
+ - 'in' corresponds to 'pushing' the front* face into the centre of the projection (+W), and 'out' corresponds to 'pulling' the zag face out so it ends up as the front* face.
+*from the eye's pov
+
+Instead of being an edgework module, display a read of some kind (RGB on the faces?), resulting in mapping faces to other faces, just like regular ocube. Unlike ocube, there should always be exactly one correct orientation (therefore, we need to determine the final positions 3 non-opposite faces (already checked that this is always unique and always possible).
+
+Screen to display the inputs so far.
+
+Clear button to reset inputs.
+
+Button to hide/reveal the cube. Rest of module cannot be interacted with while cube hidden.
+
+Switch to toggle between normal mode and "test" mode where the defuser can preview rotations.
+
+Highlightable regions to that the defuser can use to show which face is which (also use this for colourblind mode) (this is fine since the point of the module is manipulation of the hypercube, not knowledge of the axes).
+
+Upon pressing the set button, the cube follows the inputted rotations, highlighting the relevant faces.
+ - if correct, solve the module immediately.
+ - else, strike, remain until defuser presses a button.
+ - increase the speed of rotation as number of rotations increases, and add a button that can be held to further increase the rotation speed (prevent long waits).
+
+Solve animation: Custom status light with different parts that can light up <3 Hypercube continues to make rotations.
+
+Strike animation: Whole hypercube expands and contracts as if in pain, status light flashes red (and fizzles out? :D), tbd.
+
+Outer is zag </3
