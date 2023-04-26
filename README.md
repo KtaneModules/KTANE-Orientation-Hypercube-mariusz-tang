@@ -1,9 +1,7 @@
-Community fork of the KTaNE Modkit.
+Hey, this is my module, Orientation Hypercube!
 
-The [original (official) modkit](https://github.com/keeptalkinggame/ktanemodkit) isn't going to receive updates anymore. This is the fork that will be maintained from now on.
+This module is inspired by [Orientation Cube](https://ktane.timwi.de/HTML/Orientation%20Cube.html), and aims to build upon it by adding a dimension and making the read more interesting (and, importantly, it shouldn't be so easy to cheatsheet it!!).
 
-Community-made plugins can be installed at the `Keep Talking ModKit > Plugins` menupoint.
+To report bugs, please contact Kuro#2011 on Discord.
 
-[Documentation](https://github.com/Qkrisi/ktanemodkit/wiki)
-
-To get more help, join the [Keep Talking and Nobody Explodes](https://discord.gg/ktane) or the [KTaNE Modding](https://discord.gg/qzy7Gdz) Discord servers.
+To get started making modules, join the [Keep Talking and Nobody Explodes](https://discord.gg/ktane) or the [KTaNE Modding](https://discord.gg/qzy7Gdz) Discord servers.
