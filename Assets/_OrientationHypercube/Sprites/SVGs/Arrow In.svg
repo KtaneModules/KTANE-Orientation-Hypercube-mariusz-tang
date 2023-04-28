@@ -3,8 +3,8 @@
 
 <svg
    width="385.43884"
-   height="125.99542"
-   viewBox="0 0 101.9807 33.336288"
+   height="138.82724"
+   viewBox="0 0 101.9807 36.731373"
    version="1.1"
    id="svg5"
    inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
@@ -26,7 +26,7 @@
      showgrid="false"
      inkscape:zoom="2.0888419"
      inkscape:cx="216.62721"
-     inkscape:cy="41.171139"
+     inkscape:cy="47.873417"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
      inkscape:window-x="-8"
@@ -39,7 +39,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-2.3059964e-4,-15.874908)">
+     transform="translate(-2.3059964e-4,-14.177365)">
     <path
        style="fill:#ffffff;stroke:#ffffff;stroke-width:3.43413;stroke-linecap:butt;stroke-linejoin:round;stroke-opacity:1;paint-order:normal"
        d="M 45.100868,47.4942 45.10128,35.962553 100.26386,49.19172 V 15.894384 L 45.10128,29.123551 45.101689,17.591904 1.7169405,32.543051 Z"
