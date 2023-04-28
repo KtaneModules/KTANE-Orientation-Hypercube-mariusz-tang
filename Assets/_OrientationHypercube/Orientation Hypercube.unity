@@ -346,6 +346,30 @@ Prefab:
       value: 
       objectReference: {fileID: 21300000, guid: b2fa26047152ba349b5924c0b64e00a1,
         type: 3}
+    - target: {fileID: 212532991583511440, guid: c69896e50aed3c14a960ea025479fb17,
+        type: 2}
+      propertyPath: m_Size.y
+      value: 1.39
+      objectReference: {fileID: 0}
+    - target: {fileID: 212532991583511440, guid: c69896e50aed3c14a960ea025479fb17,
+        type: 2}
+      propertyPath: m_WasSpriteAssigned
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 102077519753973384, guid: c69896e50aed3c14a960ea025479fb17,
+        type: 2}
+      propertyPath: m_Text
+      value: Set
+      objectReference: {fileID: 0}
+    - target: {fileID: 23461432452134942, guid: c69896e50aed3c14a960ea025479fb17,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 36ed249d8b0910e4488872e0c3eae264, type: 2}
+    - target: {fileID: 4747631211020000, guid: c69896e50aed3c14a960ea025479fb17, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 1.065
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: c69896e50aed3c14a960ea025479fb17, type: 2}
   m_IsPrefabParent: 0
