@@ -14,6 +14,19 @@
             border: none;
         }
 
+        svg.panel {
+            width: 40%;
+            float: right;
+            margin-left: 10px;
+        }
+        svg.panel text {
+            transform-origin: center;
+            user-select: none;
+        }
+        svg.panel path { stroke: #000; }
+        .dark svg.panel path { stroke: #DDD; }
+        .dark svg.panel text { fill: #DDD; }
+
         .page-footer::before { content: 'Page '; }
         .page-footer::after { content: ' of 2'; }
     </style>
@@ -44,8 +57,20 @@
 
                 <p>
                     The "hypercube" on the module is actually a projection of a <a href="https://en.wikipedia.org/wiki/Tesseract" target="_blank">tesseract</a>
-                    into three-dimenisional space. While a cube has six, two-dimensional faces, a tesseract has eight, three-dimensional faces.
+                    into three-dimenisional space. While a cube has six two-dimensional faces, a tesseract has eight three-dimensional faces.
                 </p>
+
+                <svg class="panel" viewBox="0 0 304 304" xmlns="http://www.w3.org/2000/svg" text-anchor="middle" font-size="30">
+                    <path style="fill:transparent;stroke-width:4" d="M90 202V98L51 58v184zM40 252V48L0 8v284zM210 98v104l39 40V58ZM260 48v204l40 40V8ZM202 210H98l-40 39h184ZM252 260H48L8 300h284ZM98 90h104l40-39H58ZM48 40h204l40-40H8ZM101 199h98v-98h-98z" transform="translate(2 2)"/>
+                    <text x="150" y="31">Top</text>
+                    <text x="150" y="81">Back</text>
+                    <text x="150" y="241">Front</text>
+                    <text x="150" y="291">Bottom</text>
+                    <text x="150" y="31" style="transform:rotate(-90deg)">Zig</text>
+                    <text x="150" y="81" style="transform:rotate(-90deg)">Left</text>
+                    <text x="150" y="31" style="transform:rotate(90deg)">Zag</text>
+                    <text x="150" y="81" style="transform:rotate(90deg)">Right</text>
+                </svg>
 
                 <p>
                     The outer eight segments of the panel to the right of the hypercube can be used to highlight the faces, as shown in the diagram
