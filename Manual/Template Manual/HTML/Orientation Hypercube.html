@@ -14,6 +14,14 @@
             border: none;
         }
 
+        svg path {
+            stroke: #000;
+            fill: transparent;
+        }
+        .dark svg path {
+            stroke: #DDD;
+        }
+
         svg.panel {
             width: 40%;
             float: right;
@@ -22,20 +30,17 @@
         svg.panel text {
             transform-origin: center;
             user-select: none;
-        }
-        svg path { stroke: #000; }
-        .dark svg path {
-            stroke: #DDD;
-            fill:#DDD;
+            pointer-events: none;
         }
         .dark svg.panel text { fill: #DDD; }
-
         svg.arrows {
             clear: both;
             float: right;
             width: 40%;
             margin-top: 10px;
         }
+        svg.arrows path { fill:#000; }
+        .dark svg.arrows path { fill: #DDD; }
 
         .page-footer::before { content: 'Page '; }
         .page-footer::after { content: ' of 2'; }
@@ -70,16 +75,24 @@
                     into three-dimenisional space. While a cube has six two-dimensional faces, a tesseract has eight three-dimensional faces.
                 </p>
 
-                <svg class="panel" viewBox="0 0 304 304" xmlns="http://www.w3.org/2000/svg" text-anchor="middle" font-size="30">
-                    <path style="fill:transparent;stroke-width:4" d="M90 202V98L51 58v184zM40 252V48L0 8v284zM210 98v104l39 40V58ZM260 48v204l40 40V8ZM202 210H98l-40 39h184ZM252 260H48L8 300h284ZM98 90h104l40-39H58ZM48 40h204l40-40H8ZM101 199h98v-98h-98z" transform="translate(2 2)"/>
-                    <text x="150" y="31">Top</text>
-                    <text x="150" y="81">Back</text>
-                    <text x="150" y="241">Front</text>
-                    <text x="150" y="291">Bottom</text>
-                    <text x="150" y="31" style="transform:rotate(-90deg)">Zig</text>
-                    <text x="150" y="81" style="transform:rotate(-90deg)">Left</text>
-                    <text x="150" y="31" style="transform:rotate(90deg)">Zag</text>
-                    <text x="150" y="81" style="transform:rotate(90deg)">Right</text>
+                <svg class="panel" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" text-anchor="middle" font-size="10">
+                    <path class="highlightable" d="M3 1 H97 l-15 15 H18z"/>
+                    <path class="highlightable" d="M21 19 H79 l-15 15 H36z"/>
+                    <path class="highlightable" d="M3 99 H97 l-15 -15 H18z"/>
+                    <path class="highlightable" d="M21 81 H79 l-15 -15 H36z"/>
+                    <path class="highlightable" d="M1 3 V97 l15 -15 V18z"/>
+                    <path class="highlightable" d="M19 21 V79 l15 -15 V36z"/>
+                    <path class="highlightable" d="M99 3 V97 l-15 -15 V18z"/>
+                    <path class="highlightable" d="M81 21 V79 l-15 -15 V36z"/>
+                    <path class="highlightable" d="M37 37 h26 v26 h-26z"/>
+                    <text x="50" y="11.5">Top</text>
+                    <text x="50" y="29.5">Back</text>
+                    <text x="50" y="11.5" style="transform:rotate(90deg)">Zag</text>
+                    <text x="50" y="29.5" style="transform:rotate(90deg)">Right</text>
+                    <text x="50" y="11.5" style="transform:rotate(-90deg)">Zig</text>
+                    <text x="50" y="29.5" style="transform:rotate(-90deg)">Left</text>
+                    <text x="50" y="94.5">Bottom</text>
+                    <text x="50" y="77">Front</text>
                 </svg>
 
                 <svg class="arrows" viewBox="0 0 368.464 243.495" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
