@@ -37,6 +37,7 @@
         svg.arrows path:nth-child(n+7) { fill:#000; }
         .dark svg.arrows path:nth-child(n+7) { fill: #DDD; }
 
+        .footnote { font-size: 10px; }
         .page-footer::before { content: 'Page '; }
         .page-footer::after { content: ' of 2'; }
     </style>
@@ -95,7 +96,7 @@
                     the diagram on the right.
                 </p>
 
-                <strong>Note that these directions are relative to the perspective of the defuser, when looking straight at the module.</strong>
+                <strong class="footnote">Note that these directions are relative to the perspective of the defuser, when looking straight at the module.</strong>
 
                 <h3 style="clear:right">The Buttons</h3>
 
@@ -132,7 +133,10 @@
                     </li>
                 </ul>
 
-                <strong>Note that these directions are relative to the perspective of the observer.</strong>
+                <strong class="footnote">
+                    Note that these directions are relative to the perspective of the observer, which has a chance to move after pressing any
+                    button except left and right.
+                </strong>
 
             </div>
             <div class="page-footer relative-footer">1</div>
