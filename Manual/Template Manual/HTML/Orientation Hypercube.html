@@ -14,33 +14,28 @@
             border: none;
         }
 
+        svg {
+            float: right;
+            margin-left: 10px;
+        }
         svg path {
             stroke: #000;
             fill: transparent;
         }
-        .dark svg path {
-            stroke: #DDD;
-        }
-
-        svg.panel {
-            width: 40%;
-            float: right;
-            margin-left: 10px;
-        }
-        svg.panel text {
+        svg text {
             transform-origin: center;
             user-select: none;
             pointer-events: none;
         }
-        .dark svg.panel text { fill: #DDD; }
-        svg.arrows {
-            clear: both;
-            float: right;
-            width: 40%;
-            margin-top: 10px;
+        .dark svg path { stroke: #DDD; }
+        .dark svg text { fill: #DDD; }
+
+        svg.panel {
+            padding-top: 3%;
+            padding-bottom: 3%;
         }
-        svg.arrows path { fill:#000; }
-        .dark svg.arrows path { fill: #DDD; }
+        svg.arrows path:nth-child(n+7) { fill:#000; }
+        .dark svg.arrows path:nth-child(n+7) { fill: #DDD; }
 
         .page-footer::before { content: 'Page '; }
         .page-footer::after { content: ' of 2'; }
@@ -60,22 +55,17 @@
 
                 <p>
                     This module houses a four-dimensional hypercube, a nine-segment panel, a six-button keypad, and a large 'Set' button.
-                    There is also an eye looking at the hypercube.
+                    There is also an eye-shaped observer looking at the hypercube.
                 </p>
 
                 <p>
-                    To solve the module, use the keypad to input a sequence of rotations which leave the hypercube in the target orientation,
-                    as determined by the colours of its faces. Then, press the 'Set' button.
+                    Use the buttons to input a sequence of rotations which leave the hypercube in the target orientation,
+                    as determined by the colours of its faces. Then, press the 'Set' button to solve the module.
                 </p>
 
                 <h3>The Hypercube</h3>
 
-                <p>
-                    The "hypercube" on the module is actually a projection of a <a href="https://en.wikipedia.org/wiki/Tesseract" target="_blank">tesseract</a>
-                    into three-dimenisional space. While a cube has six two-dimensional faces, a tesseract has eight three-dimensional faces.
-                </p>
-
-                <svg class="panel" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" text-anchor="middle" font-size="10">
+                <svg class="panel" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" text-anchor="middle" font-size="10" style="width: 29%">
                     <path class="highlightable" d="M3 1 H97 l-15 15 H18z"/>
                     <path class="highlightable" d="M21 19 H79 l-15 15 H36z"/>
                     <path class="highlightable" d="M3 99 H97 l-15 -15 H18z"/>
@@ -87,35 +77,62 @@
                     <path class="highlightable" d="M37 37 h26 v26 h-26z"/>
                     <text x="50" y="11.5">Top</text>
                     <text x="50" y="29.5">Back</text>
+                    <text x="50" y="94.5">Bottom</text>
+                    <text x="50" y="77">Front</text>
                     <text x="50" y="11.5" style="transform:rotate(90deg)">Zag</text>
                     <text x="50" y="29.5" style="transform:rotate(90deg)">Right</text>
                     <text x="50" y="11.5" style="transform:rotate(-90deg)">Zig</text>
                     <text x="50" y="29.5" style="transform:rotate(-90deg)">Left</text>
-                    <text x="50" y="94.5">Bottom</text>
-                    <text x="50" y="77">Front</text>
                 </svg>
 
-                <svg class="arrows" viewBox="0 0 368.464 243.495" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
-                    <path style="stroke-width:3.43413;stroke-linejoin:round;" d="M99.109 179.995v-19.47h55.164v-22.714H99.109v-19.47L55.727 149.17z" transform="translate(-45.495 34.983)"/>
-                    <path style="fill:none;stroke-width:4.56495;stroke-linejoin:round;" d="M47.938 92.106h114.124V206.23H47.938z" transform="translate(-45.495 34.983)"/>
-                    <path style="fill:none;stroke-width:4.56495;stroke-linejoin:round;" transform="rotate(180 -22.747 17.491)" d="M-286.869-206.23h114.124v114.124h-114.124z"/>
-                    <path style="stroke-width:3.43413;stroke-linejoin:round;" d="m360.506 118.341-.001 19.47h-55.163v22.714h55.164v19.47l43.382-30.828z" transform="translate(-45.495 34.983)"/>
-                    <path style="fill:none;stroke-width:4.56495;stroke-linejoin:round" transform="rotate(180 -22.747 17.491)" d="M-411.676-206.23h114.124v114.124h-114.124z"/>
-                    <path style="fill:none;stroke-width:4.56495;stroke-linejoin:round;" d="M47.777-32.7h114.124V81.424H47.777z" transform="translate(-45.495 34.983)"/>
-                    <path style="fill:none;stroke-width:4.56495;stroke-linejoin:round;" transform="rotate(180 -22.747 17.491)" d="M-286.709-81.424h114.124V32.7h-114.124zM-411.516-81.424h114.124V32.7h-114.124z"/>
-                    <path style="fill:none;stroke-width:11.9156;stroke-linecap:round;" d="M384.692 51.256a39.719 39.719 0 0 1-46.523 8.867 39.719 39.719 0 0 1-21.938-41.973 39.719 39.719 0 0 1 33.84-33.135A39.719 39.719 0 0 1 391.573 7.83m-.118.044-17.492-3.32M393.167-9.88l-1.482 17.743M74.601 51.256a39.719 39.719 0 0 0 46.523 8.867 39.719 39.719 0 0 0 21.938-41.973 39.719 39.719 0 0 0-33.84-33.135A39.719 39.719 0 0 0 67.72 7.83m.118.044 17.493-3.32M66.126-9.88 67.61 7.863" transform="translate(-45.495 34.983)"/>
-                    <path style="stroke-width:3.13267;stroke-linejoin:round;" d="M216.008 18.988h10.519L214.459 69.31h30.375l-12.069-50.321h10.52l-13.638-39.574z" transform="translate(-45.495 34.983)"/>
-                    <path style="stroke-width:3.23085;stroke-linejoin:round;" d="M273.744 154.71H247.96l-12.447-51.898h-11.412l-12.447 51.899h-25.783l43.936 40.814z" transform="translate(-45.495 34.983)"/>
-                </svg>
+                <p>
+                    The "hypercube" on the module is actually a projection of a <a href="https://en.wikipedia.org/wiki/Tesseract" target="_blank">tesseract</a>
+                    into three-dimensional space. While a cube has six two-dimensional faces, a tesseract has eight three-dimensional faces.
+                </p>
 
                 <p>
                     The outer eight segments of the panel to the right of the hypercube can be used to highlight the faces according to
-                    the diagram to the right.
+                    the diagram on the right.
                 </p>
 
-                <p>
-                    The buttons on the module are used to rotate the hypercube in three different ways: 
-                </p>
+                <strong>Note that these directions are relative to the perspective of the defuser, when looking straight at the module.</strong>
+
+                <h3 style="clear:right">The Buttons</h3>
+
+                <svg class="arrows" viewBox="0 0 368.464 315" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" font-size="30" style="width: 32%">
+                    <path style="stroke-width:4.56495;stroke-linejoin:round" d="M47.938 92.106h114.124V206.23H47.938z" transform="translate(-45.495 66.555)"/>
+                    <path style="stroke-width:4.56495;stroke-linejoin:round" transform="rotate(180 -22.747 33.277)" d="M-286.869-206.23h114.124v114.124h-114.124z"/>
+                    <path style="stroke-width:4.56495;stroke-linejoin:round" transform="rotate(180 -22.747 33.277)" d="M-411.676-206.23h114.124v114.124h-114.124z"/>
+                    <path style="stroke-width:4.56495;stroke-linejoin:round" d="M47.777-32.7h114.124V81.424H47.777z" transform="translate(-45.495 66.555)"/>
+                    <path style="stroke-width:4.56495;stroke-linejoin:round" transform="rotate(180 -22.747 33.277)" d="M-286.709-81.424h114.124V32.7h-114.124zM-411.516-81.424h114.124V32.7h-114.124z"/>
+                    <path style="stroke-width:11.9156;stroke-linecap:round" d="M384.692 51.256a39.719 39.719 0 0 1-46.523 8.867 39.719 39.719 0 0 1-21.938-41.973 39.719 39.719 0 0 1 33.84-33.135A39.719 39.719 0 0 1 391.573 7.83m-.118.044-17.492-3.32M393.167-9.88l-1.482 17.743M74.601 51.256a39.719 39.719 0 0 0 46.523 8.867 39.719 39.719 0 0 0 21.938-41.973 39.719 39.719 0 0 0-33.84-33.135A39.719 39.719 0 0 0 67.72 7.83m.118.044 17.493-3.32M66.126-9.88 67.61 7.863" transform="translate(-45.495 66.555)"/>
+                    <path style="stroke-width:3.43413;stroke-linejoin:round" d="M99.109 179.995v-19.47h55.164v-22.714H99.109v-19.47L55.727 149.17z" transform="translate(-45.495 66.555)"/>
+                    <path style="stroke-width:3.43413;stroke-linejoin:round" d="m360.506 118.341-.001 19.47h-55.163v22.714h55.164v19.47l43.382-30.828z" transform="translate(-45.495 66.555)"/>
+                    <path style="stroke-width:3.13267;stroke-linejoin:round" d="M216.008 18.988h10.519L214.459 69.31h30.375l-12.069-50.321h10.52l-13.638-39.574z" transform="translate(-45.495 66.555)"/>
+                    <path style="stroke-width:3.23085;stroke-linejoin:round" d="M273.744 154.71H247.96l-12.447-51.898h-11.412l-12.447 51.899h-25.783l43.936 40.814z" transform="translate(-45.495 66.555)"/>
+                    <text x="0" y="21">Counter</text>
+                    <text x="168" y="21">In</text>
+                    <text x="264" y="21">Clock</text>
+                    <text x="28" y="305">Left</text>
+                    <text x="157" y="305">Out</text>
+                    <text x="267" y="305">Right</text>
+                </svg>
+
+                <p>The buttons on the module are used to rotate the hypercube in three different ways:</p>
+
+                <ul>
+                    <li>The "clock" and "counter" buttons will roll the hypercube in their respective directions.</li>
+                    <li>
+                        The "left" and "right" buttons will yaw the hypercube in their respective directions. This means that the front face moves
+                        to become the left or right face, respectively.
+                    </li>
+                    <li>
+                        The "in" and "out" buttons will 'push' the front face into, or 'pull' the zig face out of, the centre of the projection.
+                        This means that the front face will move to become the zig or zag face, respectively.
+                    </li>
+                </ul>
+
+                <strong>Note that these directions are relative to the perspective of the observer.</strong>
 
             </div>
             <div class="page-footer relative-footer">1</div>
