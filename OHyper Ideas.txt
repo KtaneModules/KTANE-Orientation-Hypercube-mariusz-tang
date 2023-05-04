@@ -3,7 +3,7 @@ Orientation Hypercube
 Base idea: Orientation cube, but 4D
 
 In addition to the left, right, clockwise, and counterclockwise buttons, add 'in' and 'out' buttons.
- - 'in' corresponds to 'pushing' the front* face into the centre of the projection (+W), and 'out' corresponds to 'pulling' the zag face out so it ends up as the front* face.
+ - 'in' corresponds to 'pushing' the front* face into the centre of the projection (-W), and 'out' corresponds to 'pulling' the zig face out so it ends up as the front* face.
 *from the eye's pov
 
 Instead of being an edgework module, display a read of some kind (RGB on the faces?), resulting in mapping faces to other faces, just like regular ocube. Unlike ocube, there should always be exactly one correct orientation (therefore, we need to determine the final positions 3 non-opposite faces (already checked that this is always unique and always possible).
@@ -21,13 +21,12 @@ Upon pressing the set button, the cube follows the inputted rotations, highlight
 
 Solve animation: Custom status light with different parts that can light up <3 Hypercube continues to make rotations.
 
-Strike animation: Whole hypercube expands and contracts as if in pain, status light flashes red (and fizzles out? :D), tbd.
+Strike animation: Whole hypercube expands and (Kit is cool) contracts as if in pain, status light flashes red (and fizzles out? :D), tbd.
 
 Outer is zag </3
 
 SOLVING PROCESS IDEAS:
 Each face is coloured (RGB).
-Use edgework to determine order of axes (XYZW).
 For each colour channel, read positives and negatives as two separate binary numbers.
 Determine an offset by which to shift the negatives relative to the positives, then XOR/XNOR (based on some condition) the new pairs.
 If pairs did not shift, assign each colour the number obtained from its pair, otherwise assign from the pair containing the other two colours.
