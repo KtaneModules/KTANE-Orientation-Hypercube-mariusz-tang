@@ -19,11 +19,9 @@ public class Edge : MonoBehaviour {
         _vertices = vertices;
     }
 
-    private void Update() {
-        if (_vertices != null) {
-            transform.localPosition = 0.5f * (_vertices[0].transform.localPosition + _vertices[1].transform.localPosition);
-            transform.localScale = new Vector3(_defaultScale.x, 0.5f * Vector3.Distance(_vertices[0].transform.localPosition, _vertices[1].transform.localPosition), _defaultScale.z);
-            transform.rotation = Quaternion.FromToRotation(Vector3.up, _vertices[0].transform.position - _vertices[1].transform.position);
-        }
+    public void UpdatePosition() {
+        transform.localPosition = 0.5f * (_vertices[0].transform.localPosition + _vertices[1].transform.localPosition);
+        transform.localScale = new Vector3(_defaultScale.x, 0.5f * Vector3.Distance(_vertices[0].transform.localPosition, _vertices[1].transform.localPosition), _defaultScale.z);
+        transform.rotation = Quaternion.FromToRotation(Vector3.up, _vertices[0].transform.position - _vertices[1].transform.position);
     }
 }

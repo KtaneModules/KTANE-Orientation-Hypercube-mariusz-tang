@@ -48,6 +48,15 @@ public class Hypercube : MonoBehaviour {
     private List<Vertex> _vertices;
     private List<Edge> _edges;
 
+    private float _wobbleFactor = 0.005f;
+
+    private string _axes = "XYZW";
+    private string _rotation = string.Empty;
+    private float _rotationAngle = 0;
+    private float _rotationRate = 1;
+
+    private Queue<string> _rotationQueue = new Queue<string>();
+
     private void Start() {
         _vertices = new List<Vertex>();
 
@@ -57,7 +66,7 @@ public class Hypercube : MonoBehaviour {
             int y = 2 * ((i >> 1) % 2) - 1;
             int z = 2 * ((i >> 2) % 2) - 1;
             int w = 2 * ((i >> 3) % 2) - 1;
-            _vertices[i].Position4D = new Vector4(x, y, z, w);
+            _vertices[i].InternalPosition4D = new Vector4(x, y, z, w);
         }
 
         _edges = new List<Edge>();
@@ -65,6 +74,62 @@ public class Hypercube : MonoBehaviour {
         for (int i = 0; i < _vertexPairs.GetLength(0); i++) {
             _edges.Add(Instantiate(_edge, transform).GetComponent<Edge>());
             _edges[i].AssignVertices(_vertices[_vertexPairs[i, 0]], _vertices[_vertexPairs[i, 1]]);
+        }
+    }
+
+    private void Update() {
+        if (_rotation.Length != 0) {
+            RotateHypercube();
+        }
+        _vertices.ForEach(v => v.UpdateWobble(_wobbleFactor));
+        _edges.ForEach(e => e.UpdatePosition());
+    }
+
+    private void RotateHypercube() {
+        Matrix4x4 matrix;
+
+        _rotationAngle += _rotationRate * Time.deltaTime;
+        if (_rotationAngle < Mathf.PI / 2) {
+            matrix = GetRotationMatrix(rotationIsComplete: false);
+            _vertices.ForEach(v => v.Rotate4D(matrix));
+        }
+        else {
+            matrix = GetRotationMatrix(rotationIsComplete: true);
+            _vertices.ForEach(v => v.Rotate4D(matrix, setInternalPosition: true));
+            GetNextRotation();
+        }
+    }
+
+    private Matrix4x4 GetRotationMatrix(bool rotationIsComplete) {
+        Matrix4x4 matrix = Matrix4x4.identity;
+        int fromAxis = _axes.IndexOf(_rotation[0]);
+        int toAxis = _axes.IndexOf(_rotation[1]);
+
+        if (rotationIsComplete) {
+            matrix[fromAxis, fromAxis] = 0;
+            matrix[toAxis, toAxis] = 0;
+            matrix[fromAxis, toAxis] = -1;
+            matrix[toAxis, fromAxis] = 1;
+        }
+        else {
+            matrix[fromAxis, fromAxis] = Mathf.Cos(_rotationAngle);
+            matrix[toAxis, toAxis] = Mathf.Cos(_rotationAngle);
+            matrix[fromAxis, toAxis] = -Mathf.Sin(_rotationAngle);
+            matrix[toAxis, fromAxis] = Mathf.Sin(_rotationAngle);
+        }
+
+        return matrix;
+    }
+
+    private void GetNextRotation() {
+        if (_rotationQueue.Count != 0) {
+            _rotationAngle -= Mathf.PI / 2;
+            _rotation = _rotationQueue.Dequeue();
+            _rotationRate += 1;
+        }
+        else {
+            _rotation = string.Empty;
+            _rotationAngle = 0;
         }
     }
 }
