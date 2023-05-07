@@ -6,7 +6,6 @@ using KModkit;
 using UnityEngine;
 
 public class Hypercube : MonoBehaviour {
-
     private readonly int[,] _vertexPairs = new int[,] {
         { 0, 1 },
         { 1, 3 },
@@ -50,7 +49,6 @@ public class Hypercube : MonoBehaviour {
 
     private float _wobbleFactor = 0.005f;
 
-    private string _axes = "XYZW";
     private string _rotation = string.Empty;
     private float _rotationAngle = 0;
     private float _rotationRate = 1;
@@ -81,6 +79,10 @@ public class Hypercube : MonoBehaviour {
         if (_rotation.Length != 0) {
             RotateHypercube();
         }
+        else if (_rotationQueue.Count != 0) {
+            _rotation = _rotationQueue.Dequeue();
+        }
+
         _vertices.ForEach(v => v.UpdateWobble(_wobbleFactor));
         _edges.ForEach(e => e.UpdatePosition());
     }
@@ -102,8 +104,8 @@ public class Hypercube : MonoBehaviour {
 
     private Matrix4x4 GetRotationMatrix(bool rotationIsComplete) {
         Matrix4x4 matrix = Matrix4x4.identity;
-        int fromAxis = _axes.IndexOf(_rotation[0]);
-        int toAxis = _axes.IndexOf(_rotation[1]);
+        int fromAxis = _rotation[0] - '0';
+        int toAxis = _rotation[1] - '0';
 
         if (rotationIsComplete) {
             matrix[fromAxis, fromAxis] = 0;
@@ -125,11 +127,22 @@ public class Hypercube : MonoBehaviour {
         if (_rotationQueue.Count != 0) {
             _rotationAngle -= Mathf.PI / 2;
             _rotation = _rotationQueue.Dequeue();
-            _rotationRate += 1;
         }
         else {
             _rotation = string.Empty;
             _rotationAngle = 0;
         }
+    }
+
+    public void QueueRotation(string rotation) {
+        int result;
+        if (rotation.Length != 2 || !int.TryParse(rotation, out result)) {
+            throw new ArgumentException("Rotation should be in the form of a string of two digits.");
+        }
+        if (result < 0 || result / 10 >= 4 || result % 10 >= 4) {
+            throw new ArgumentException("Rotation should contain only the digits 0-3.");
+        }
+
+        _rotationQueue.Enqueue(rotation);
     }
 }
