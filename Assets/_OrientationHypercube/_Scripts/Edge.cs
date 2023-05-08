@@ -15,7 +15,7 @@ public class Edge : MonoBehaviour {
         if (vertices.Length != 2) {
             throw new RankException("An edge must have exactly two vertices.");
         }
-
+        
         _vertices = vertices;
     }
 

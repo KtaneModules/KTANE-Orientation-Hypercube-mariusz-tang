@@ -10,7 +10,7 @@ public class Vertex : MonoBehaviour {
 
     private const float VERTEX_SCALE = 0.02147632f;
 
-    private Vector4 _internalPosition4D;
+    private int[] _internalPosition4D;
     private Vector4 _position4D;
     private Vector3 _position3D;
 
@@ -25,11 +25,14 @@ public class Vertex : MonoBehaviour {
         }
     }
 
-    public Vector4 InternalPosition4D {
+    public int[] InternalPosition4D {
         get { return _internalPosition4D; }
         set {
+            if (value.Length != 4) {
+                throw new RankException("InternalPosition4D should have four elements.");
+            }
             _internalPosition4D = value;
-            Position4D = value;
+            Position4D = new Vector4(value[0], value[1], value[2], value[3]);
         }
     }
 
@@ -66,7 +69,12 @@ public class Vertex : MonoBehaviour {
         }
 
         if (setInternalPosition) {
-            InternalPosition4D = newPosition;
+            InternalPosition4D = new int[] {
+                Mathf.RoundToInt(newPosition.x),
+                Mathf.RoundToInt(newPosition.y),
+                Mathf.RoundToInt(newPosition.z),
+                Mathf.RoundToInt(newPosition.w)
+            };
         }
         else {
             Position4D = newPosition;
