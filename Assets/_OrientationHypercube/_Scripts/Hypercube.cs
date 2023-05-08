@@ -4,15 +4,18 @@ using System.Collections.Generic;
 using System.Linq;
 using KModkit;
 using UnityEngine;
+using Rnd = UnityEngine.Random;
 
 public class Hypercube : MonoBehaviour {
 
     [SerializeField] private GameObject _vertex;
     [SerializeField] private GameObject _edge;
+    [SerializeField] private GameObject _face;
     [SerializeField] private Material _baseMaterial;
 
     private List<Vertex> _vertices;
     private List<Edge> _edges;
+    private List<Face> _faces;
     private Material _cubeMaterial;
 
     private float _wobbleFactor = 0.005f;
@@ -20,13 +23,14 @@ public class Hypercube : MonoBehaviour {
     private string _rotation = string.Empty;
     private float _rotationAngle = 0;
     private float _rotationRate = 1;
-
     private Queue<string> _rotationQueue = new Queue<string>();
 
     private void Start() {
         _cubeMaterial = new Material(_baseMaterial);
+
         GenerateVertices();
         GenerateEdges();
+        GenerateFaces();
     }
 
     private void GenerateVertices() {
@@ -58,6 +62,33 @@ public class Hypercube : MonoBehaviour {
         }
     }
 
+    private void GenerateFaces() {
+        _faces = new List<Face>();
+
+        string axisNames = "XYZW";
+        for (int i = 0; i < 4; i++) {
+            for (int j = -1; j < 2; j += 2) {
+                List<int> remainingAxes = new List<int> { 0, 1, 2, 3 };
+                remainingAxes.Remove(i);
+
+                string sign = j < 0 ? "-" : "+";
+                var vertices = new Vertex[8];
+
+                foreach (Vertex vert in _vertices.Where(v => v.InternalPosition4D[i] == j)) {
+                    int index = 0;
+                    index += (vert.InternalPosition4D[remainingAxes[0]] + 1) / 2;
+                    index += vert.InternalPosition4D[remainingAxes[1]] + 1;
+                    index += (vert.InternalPosition4D[remainingAxes[2]] + 1) * 2;
+                    vertices[index] = vert;
+                }
+
+                _faces.Add(Instantiate(_face, transform).GetComponent<Face>());
+                _faces.Last().AssignVertices(vertices, sign + axisNames[i]);
+                _faces.Last().Colour = new Color(Rnd.Range(0, 2), Rnd.Range(0, 2), Rnd.Range(0, 2), 0.5f);
+            }
+        }
+    }
+
     private void Update() {
         if (_rotation.Length != 0) {
             RotateHypercube();
@@ -68,6 +99,7 @@ public class Hypercube : MonoBehaviour {
 
         _vertices.ForEach(v => v.UpdateWobble(_wobbleFactor));
         _edges.ForEach(e => e.UpdatePosition());
+        _faces.ForEach(f => f.UpdateVertices());
     }
 
     private void RotateHypercube() {
