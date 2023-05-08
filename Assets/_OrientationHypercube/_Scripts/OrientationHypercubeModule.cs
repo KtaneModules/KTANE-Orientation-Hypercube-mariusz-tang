@@ -5,7 +5,7 @@ using System.Linq;
 using KModkit;
 using UnityEngine;
 
-public class OrientationHypercube : MonoBehaviour {
+public class OrientationHypercubeModule : MonoBehaviour {
 
     private readonly Dictionary<string, string> _buttonToRotation = new Dictionary<string, string> {
         {"Left", "XY"},

@@ -25,6 +25,7 @@ public class Vertex : MonoBehaviour {
         }
     }
 
+    // Use an integer array to enable equality comparisons.
     public int[] InternalPosition4D {
         get { return _internalPosition4D; }
         set {

@@ -9,9 +9,11 @@ public class Hypercube : MonoBehaviour {
 
     [SerializeField] private GameObject _vertex;
     [SerializeField] private GameObject _edge;
+    [SerializeField] private Material _baseMaterial;
 
     private List<Vertex> _vertices;
     private List<Edge> _edges;
+    private Material _cubeMaterial;
 
     private float _wobbleFactor = 0.005f;
 
@@ -22,6 +24,7 @@ public class Hypercube : MonoBehaviour {
     private Queue<string> _rotationQueue = new Queue<string>();
 
     private void Start() {
+        _cubeMaterial = new Material(_baseMaterial);
         GenerateVertices();
         GenerateEdges();
     }
@@ -36,6 +39,7 @@ public class Hypercube : MonoBehaviour {
             int z = 2 * ((i >> 2) % 2) - 1;
             int w = 2 * ((i >> 3) % 2) - 1;
             _vertices[i].InternalPosition4D = new int[] { x, y, z, w };
+            _vertices[i].GetComponent<MeshRenderer>().material = _cubeMaterial;
         }
     }
 
@@ -48,6 +52,7 @@ public class Hypercube : MonoBehaviour {
                 if (_vertices[i].InternalPosition4D.Where((val, ind) => val != _vertices[j].InternalPosition4D[ind]).Count() == 1) {
                     _edges.Add(Instantiate(_edge, transform).GetComponent<Edge>());
                     _edges.Last().AssignVertices(_vertices[i], _vertices[j]);
+                    _edges.Last().GetComponent<MeshRenderer>().material = _cubeMaterial;
                 }
             }
         }
