@@ -15,9 +15,20 @@ public class OrientationHypercubeModule : MonoBehaviour {
         {"Clock", "ZX"},
         {"Counter", "XZ"},
     };
+    private readonly string[] _panelButtonOrder = new string[] {
+        "Right Inner",
+        "Left Inner",
+        "Top Outer",
+        "Bottom Outer",
+        "Top Inner",
+        "Bottom Inner",
+        "Right Outer",
+        "Left Outer",
+    };
 
     [SerializeField] private Hypercube _hypercube;
     [SerializeField] private KMSelectable[] _buttons;
+    [SerializeField] private KMSelectable[] _panel;
     [SerializeField] private Observer _eye;
 
     private KMBombInfo _bomb;
@@ -35,6 +46,10 @@ public class OrientationHypercubeModule : MonoBehaviour {
         foreach (KMSelectable button in _buttons) {
             button.OnInteract += delegate () { HandlePress(button.transform.name); return false; };
         }
+        foreach (KMSelectable panelButton in _panel) {
+            panelButton.OnHighlight += delegate () { HandleHover(panelButton); };
+            panelButton.OnHighlightEnded += delegate () { HandleUnhover(panelButton); };
+        }
     }
 
     private void HandlePress(string buttonName) {
@@ -44,6 +59,16 @@ public class OrientationHypercubeModule : MonoBehaviour {
         }
 
         _hypercube.QueueRotation(GetRotationDigits(_buttonToRotation[buttonName]));
+    }
+
+    private void HandleHover(KMSelectable panelButton) {
+        panelButton.GetComponent<MeshRenderer>().material.color = Color.white;
+        _hypercube.HighlightFace(Array.IndexOf(_panelButtonOrder, panelButton.transform.name));
+    }
+
+    private void HandleUnhover(KMSelectable panelButton) {
+        panelButton.GetComponent<MeshRenderer>().material.color = Color.white * (49f / 255f);
+        _hypercube.EndHighlight();
     }
 
     private string GetRotationDigits(string rotationLetters) {

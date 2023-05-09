@@ -66,15 +66,15 @@ public class Hypercube : MonoBehaviour {
         _faces = new List<Face>();
 
         string axisNames = "XYZW";
-        for (int i = 0; i < 4; i++) {
-            for (int j = -1; j < 2; j += 2) {
+        for (int axis = 0; axis < 4; axis++) {
+            for (int signNumber = -1; signNumber < 2; signNumber += 2) {
                 List<int> remainingAxes = new List<int> { 0, 1, 2, 3 };
-                remainingAxes.Remove(i);
+                remainingAxes.Remove(axis);
 
-                string sign = j < 0 ? "-" : "+";
+                string sign = signNumber < 0 ? "-" : "+";
                 var vertices = new Vertex[8];
 
-                foreach (Vertex vert in _vertices.Where(v => v.InternalPosition4D[i] == j)) {
+                foreach (Vertex vert in _vertices.Where(v => v.InternalPosition4D[axis] == signNumber)) {
                     int index = 0;
                     index += (vert.InternalPosition4D[remainingAxes[0]] + 1) / 2;
                     index += vert.InternalPosition4D[remainingAxes[1]] + 1;
@@ -83,7 +83,7 @@ public class Hypercube : MonoBehaviour {
                 }
 
                 _faces.Add(Instantiate(_face, transform).GetComponent<Face>());
-                _faces.Last().AssignVertices(vertices, sign + axisNames[i]);
+                _faces.Last().AssignVertices(vertices, sign + axisNames[axis]);
                 _faces.Last().Colour = new Color(Rnd.Range(0, 2), Rnd.Range(0, 2), Rnd.Range(0, 2), 0.5f);
             }
         }
@@ -159,5 +159,17 @@ public class Hypercube : MonoBehaviour {
         }
 
         _rotationQueue.Enqueue(rotation);
+    }
+
+    public void HighlightFace(int faceNumber) {
+        for (int i = 0; i < _faces.Count(); i++) {
+            if (i != faceNumber) {
+                _faces[i].GetComponent<MeshRenderer>().enabled = false;
+            }
+        }
+    }
+
+    public void EndHighlight() {
+        _faces.ForEach(f => f.GetComponent<MeshRenderer>().enabled = true);
     }
 }
