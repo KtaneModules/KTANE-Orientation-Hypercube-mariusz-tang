@@ -145,4 +145,33 @@ public class ReadGenerator {
         _reversedLogging.Add($"R+:{_positiveBinaries[0]} | G+:{_positiveBinaries[1]} | B+:{_positiveBinaries[2]}");
         _reversedLogging.Add(message);
     }
+
+    public Dictionary<string, Color> GetFaceColours() {
+        var faceColours = new Dictionary<string, Color>();
+
+        for (int i = 0; i < 4; i++) {
+            int rValue = _positiveBinaries[0][i] - '0';
+            int gValue = _positiveBinaries[1][i] - '0';
+            int bValue = _positiveBinaries[2][i] - '0';
+            Color newColour = GetColourFromRGB(rValue, gValue, bValue);
+            faceColours.Add($"+{"XYZW"[i]}", newColour);
+
+            rValue = _negativeBinaries[0][i] - '0';
+            gValue = _negativeBinaries[1][i] - '0';
+            bValue = _negativeBinaries[2][i] - '0';
+            newColour = GetColourFromRGB(rValue, gValue, bValue);
+            faceColours.Add($"-{"XYZW"[i]}", newColour);
+        }
+
+        return faceColours;
+    }
+
+    private Color GetColourFromRGB(int rValue, int gValue, int bValue) {
+        if (rValue + gValue + bValue != 0) {
+            return new Color(rValue, gValue, bValue, 0.25f);
+        }
+        else {
+            return new Color(0, 0, 0, 0);
+        }
+    }
 }

@@ -11,7 +11,8 @@ public class Face : MonoBehaviour {
     private MeshRenderer _renderer;
     private Vertex[] _vertices;
 
-    public string Direction { get; private set; }
+    public string InitialDirection { get; private set; }
+    public string CurrentDirection { get; private set; }
     public Color Colour {
         get { return _renderer.material.color; }
         set { _renderer.material.color = value; }
@@ -64,11 +65,26 @@ public class Face : MonoBehaviour {
         }
 
         _vertices = vertices;
-        Direction = direction;
+        InitialDirection = direction;
+        CurrentDirection = direction;
     }
 
     public void UpdateVertices() {
         _filter.mesh.vertices = _vertices.Select(v => v.transform.localPosition).ToArray();
         _filter.mesh.RecalculateNormals();
+    }
+
+    public void UpdateCurrentDirection(string rotation) {
+        if (rotation.Length != 2 || !"0123".Contains(rotation[0]) || !"0123".Contains(rotation[1])) {
+            throw new ArgumentException($"\"{rotation}\" is not a valid rotation.");
+        }
+        rotation = $"{"XYZW"[rotation[0] - '0']}{"XYZW"[rotation[1] - '0']}";
+
+        if (CurrentDirection[1] == rotation[0]) {
+            CurrentDirection = $"{CurrentDirection[0]}{rotation[1]}";
+        }
+        else if (CurrentDirection[1] == rotation[1]) {
+            CurrentDirection = $"{(CurrentDirection[0] == '-' ? "+" : "-")}{rotation[0]}";
+        }
     }
 }

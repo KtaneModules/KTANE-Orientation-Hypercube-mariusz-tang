@@ -18,14 +18,19 @@ public class Hypercube : MonoBehaviour {
     private List<Face> _faces;
     private Material _cubeMaterial;
 
-    private float _wobbleFactor = 0.005f;
-
     private string _rotation = string.Empty;
     private float _rotationAngle = 0;
     private float _rotationRate = 1;
     private Queue<string> _rotationQueue = new Queue<string>();
 
-    private void Start() {
+    private string _highlightedFace = string.Empty;
+
+    private Dictionary<string, Color> _faceColours = new Dictionary<string, Color>();
+
+    public float WobbleFactor { get; set; }
+
+    private void Awake() {
+        WobbleFactor = 0.005f;
         _cubeMaterial = new Material(_baseMaterial);
 
         GenerateVertices();
@@ -84,7 +89,6 @@ public class Hypercube : MonoBehaviour {
 
                 _faces.Add(Instantiate(_face, transform).GetComponent<Face>());
                 _faces.Last().AssignVertices(vertices, sign + axisNames[axis]);
-                _faces.Last().Colour = new Color(Rnd.Range(0, 2), Rnd.Range(0, 2), Rnd.Range(0, 2), 0.5f);
             }
         }
     }
@@ -94,10 +98,10 @@ public class Hypercube : MonoBehaviour {
             RotateHypercube();
         }
         else if (_rotationQueue.Count != 0) {
-            _rotation = _rotationQueue.Dequeue();
+            GetNextRotation();
         }
 
-        _vertices.ForEach(v => v.UpdateWobble(_wobbleFactor));
+        _vertices.ForEach(v => v.UpdateWobble(WobbleFactor));
         _edges.ForEach(e => e.UpdatePosition());
         _faces.ForEach(f => f.UpdateVertices());
     }
@@ -140,8 +144,14 @@ public class Hypercube : MonoBehaviour {
 
     private void GetNextRotation() {
         if (_rotationQueue.Count != 0) {
-            _rotationAngle -= Mathf.PI / 2;
+            _rotationAngle = Mathf.Max(_rotationAngle - Mathf.PI / 2, 0);
             _rotation = _rotationQueue.Dequeue();
+
+            _faces.ForEach(f => f.UpdateCurrentDirection(_rotation));
+            UpdateColours();
+            if (_highlightedFace.Length != 0) {
+                HighlightFace(_highlightedFace);
+            }
         }
         else {
             _rotation = string.Empty;
@@ -162,14 +172,31 @@ public class Hypercube : MonoBehaviour {
     }
 
     public void HighlightFace(string direction) {
+        _highlightedFace = direction;
+
         for (int i = 0; i < _faces.Count(); i++) {
-            if (_faces[i].Direction != direction) {
+            if (_faces[i].CurrentDirection != direction) {
                 _faces[i].GetComponent<MeshRenderer>().enabled = false;
+            }
+            else {
+                _faces[i].GetComponent<MeshRenderer>().enabled = true;
+                _cubeMaterial.color = (_faces[i].Colour + Color.gray) / 2;
             }
         }
     }
 
     public void EndHighlight() {
+        _highlightedFace = string.Empty;
         _faces.ForEach(f => f.GetComponent<MeshRenderer>().enabled = true);
+        _cubeMaterial.color = Color.white;
+    }
+
+    public void SetColours(Dictionary<string, Color> colours) {
+        _faceColours = colours;
+        UpdateColours();
+    }
+
+    public void UpdateColours() {
+        _faces.ForEach(f => f.Colour = _faceColours[f.CurrentDirection]);
     }
 }

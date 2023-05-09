@@ -29,6 +29,8 @@ public class OrientationHypercubeModule : MonoBehaviour {
     [SerializeField] private Hypercube _hypercube;
     [SerializeField] private KMSelectable[] _buttons;
     [SerializeField] private KMSelectable[] _panel;
+    [SerializeField] private KMSelectable _centrePanelButton;
+    [SerializeField] private Animator _panelAnimator;
     [SerializeField] private Observer _eye;
 
     private static int _moduleCount = 0;
@@ -48,9 +50,6 @@ public class OrientationHypercubeModule : MonoBehaviour {
         _module = GetComponent<KMBombModule>();
         _readGenerator = new ReadGenerator(this);
 
-        //!!
-        _readGenerator.Generate();
-
         foreach (KMSelectable button in _buttons) {
             button.OnInteract += delegate () { HandlePress(button.transform.name); return false; };
         }
@@ -58,6 +57,12 @@ public class OrientationHypercubeModule : MonoBehaviour {
             panelButton.OnHighlight += delegate () { HandleHover(panelButton); };
             panelButton.OnHighlightEnded += delegate () { HandleUnhover(panelButton); };
         }
+        _centrePanelButton.OnInteract += delegate () { HandleCentrePress(); return false; };
+    }
+
+    private void Start() {
+        _readGenerator.Generate();
+        _hypercube.SetColours(_readGenerator.GetFaceColours());
     }
 
     private void HandlePress(string buttonName) {
@@ -71,12 +76,22 @@ public class OrientationHypercubeModule : MonoBehaviour {
 
     private void HandleHover(KMSelectable panelButton) {
         panelButton.GetComponent<MeshRenderer>().material.color = Color.white;
-        _hypercube.HighlightFace(_panelButtonDirections[panelButton.transform.name]);
+
+        if (panelButton.transform.name != "Centre") {
+            _hypercube.HighlightFace(_panelButtonDirections[panelButton.transform.name]);
+        }
     }
 
     private void HandleUnhover(KMSelectable panelButton) {
         panelButton.GetComponent<MeshRenderer>().material.color = Color.white * (49f / 255f);
-        _hypercube.EndHighlight();
+
+        if (panelButton.transform.name != "Centre") {
+            _hypercube.EndHighlight();
+        }
+    }
+
+    private void HandleCentrePress() {
+        _panelAnimator.SetTrigger("ModeChange");
     }
 
     private string GetRotationDigits(string rotationLetters) {
