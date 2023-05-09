@@ -15,15 +15,15 @@ public class OrientationHypercubeModule : MonoBehaviour {
         {"Clock", "ZX"},
         {"Counter", "XZ"},
     };
-    private readonly string[] _panelButtonOrder = new string[] {
-        "Right Inner",
-        "Left Inner",
-        "Top Outer",
-        "Bottom Outer",
-        "Top Inner",
-        "Bottom Inner",
-        "Right Outer",
-        "Left Outer",
+    private readonly Dictionary<string, string> _panelButtonDirections = new Dictionary<string, string> {
+        { "Right Inner", "+X"},
+        { "Left Inner", "-X"},
+        { "Top Outer", "+Y"},
+        { "Bottom Outer", "-Y"},
+        { "Top Inner", "+Z"},
+        { "Bottom Inner", "-Z"},
+        { "Right Outer", "+W"},
+        { "Left Outer", "-W"},
     };
 
     [SerializeField] private Hypercube _hypercube;
@@ -31,17 +31,25 @@ public class OrientationHypercubeModule : MonoBehaviour {
     [SerializeField] private KMSelectable[] _panel;
     [SerializeField] private Observer _eye;
 
-    private KMBombInfo _bomb;
+    private static int _moduleCount = 0;
+    private int _moduleId;
+
     private KMAudio _audio;
     private KMBombModule _module;
+    private ReadGenerator _readGenerator;
 
     private string _axes = "XZYW";
     private int[] _signs = new int[] { 1, 1, -1, 1 };
 
     private void Awake() {
-        _bomb = GetComponent<KMBombInfo>();
+        _moduleId = _moduleCount++;
+
         _audio = GetComponent<KMAudio>();
         _module = GetComponent<KMBombModule>();
+        _readGenerator = new ReadGenerator(this);
+
+        //!!
+        _readGenerator.Generate();
 
         foreach (KMSelectable button in _buttons) {
             button.OnInteract += delegate () { HandlePress(button.transform.name); return false; };
@@ -63,7 +71,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
 
     private void HandleHover(KMSelectable panelButton) {
         panelButton.GetComponent<MeshRenderer>().material.color = Color.white;
-        _hypercube.HighlightFace(Array.IndexOf(_panelButtonOrder, panelButton.transform.name));
+        _hypercube.HighlightFace(_panelButtonDirections[panelButton.transform.name]);
     }
 
     private void HandleUnhover(KMSelectable panelButton) {
@@ -98,5 +106,14 @@ public class OrientationHypercubeModule : MonoBehaviour {
         }
 
         _eye.MoveRight(reverse);
+    }
+
+    public void Log(string message) {
+        Debug.Log($"[Orientation Hypercube #{_moduleId}] {message}");
+    }
+
+    public void Strike(string strikeMessage) {
+        _module.HandleStrike();
+        Log($"✕ {strikeMessage}");
     }
 }

@@ -161,9 +161,9 @@ public class Hypercube : MonoBehaviour {
         _rotationQueue.Enqueue(rotation);
     }
 
-    public void HighlightFace(int faceNumber) {
+    public void HighlightFace(string direction) {
         for (int i = 0; i < _faces.Count(); i++) {
-            if (i != faceNumber) {
+            if (_faces[i].Direction != direction) {
                 _faces[i].GetComponent<MeshRenderer>().enabled = false;
             }
         }
