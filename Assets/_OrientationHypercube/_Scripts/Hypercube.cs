@@ -28,9 +28,10 @@ public class Hypercube : MonoBehaviour {
     private Dictionary<string, Color> _faceColours = new Dictionary<string, Color>();
 
     public float WobbleFactor { get; set; }
+    public bool IsBusy { get; private set; }
 
     private void Awake() {
-        WobbleFactor = 0.005f;
+        WobbleFactor = 0.007f;
         _cubeMaterial = new Material(_baseMaterial);
 
         GenerateVertices();
@@ -156,11 +157,13 @@ public class Hypercube : MonoBehaviour {
         else {
             _rotation = string.Empty;
             _rotationAngle = 0;
+            IsBusy = false;
         }
     }
 
     public void QueueRotation(string rotation) {
         int result;
+        IsBusy = true;
         if (rotation.Length != 2 || !int.TryParse(rotation, out result)) {
             throw new ArgumentException("Rotation should be in the form of a string of two digits.");
         }
@@ -172,6 +175,7 @@ public class Hypercube : MonoBehaviour {
     }
 
     public void HighlightFace(string direction) {
+        // Can pass in any string not matching a direction to hide all faces.
         _highlightedFace = direction;
 
         for (int i = 0; i < _faces.Count(); i++) {
@@ -198,5 +202,9 @@ public class Hypercube : MonoBehaviour {
 
     public void UpdateColours() {
         _faces.ForEach(f => f.Colour = _faceColours[f.CurrentDirection]);
+    }
+
+    public void StopRotations() {
+        _rotationQueue.Clear();
     }
 }

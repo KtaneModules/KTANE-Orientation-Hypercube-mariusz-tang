@@ -43,6 +43,9 @@ public class OrientationHypercubeModule : MonoBehaviour {
     private string _axes = "XZYW";
     private int[] _signs = new int[] { 1, 1, -1, 1 };
 
+    private bool _isPreviewMode = false;
+    private bool _isBusy = false;
+
     private void Awake() {
         _moduleId = _moduleCount++;
 
@@ -77,6 +80,10 @@ public class OrientationHypercubeModule : MonoBehaviour {
     private void HandleHover(KMSelectable panelButton) {
         panelButton.GetComponent<MeshRenderer>().material.color = Color.white;
 
+        if (_isBusy || _isPreviewMode) {
+            return;
+        }
+
         if (panelButton.transform.name != "Centre") {
             _hypercube.HighlightFace(_panelButtonDirections[panelButton.transform.name]);
         }
@@ -85,13 +92,20 @@ public class OrientationHypercubeModule : MonoBehaviour {
     private void HandleUnhover(KMSelectable panelButton) {
         panelButton.GetComponent<MeshRenderer>().material.color = Color.white * (49f / 255f);
 
+        if (_isBusy || _isPreviewMode) {
+            return;
+        }
+
         if (panelButton.transform.name != "Centre") {
             _hypercube.EndHighlight();
         }
     }
 
     private void HandleCentrePress() {
-        _panelAnimator.SetTrigger("ModeChange");
+        if (_isBusy) {
+            return;
+        }
+        StartCoroutine(ModeChangeAnimation(!_isPreviewMode));
     }
 
     private string GetRotationDigits(string rotationLetters) {
@@ -130,5 +144,43 @@ public class OrientationHypercubeModule : MonoBehaviour {
     public void Strike(string strikeMessage) {
         _module.HandleStrike();
         Log($"✕ {strikeMessage}");
+    }
+
+    private IEnumerator ModeChangeAnimation(bool setToPreviewMode) {
+        _isBusy = true;
+        _panelAnimator.SetTrigger("ModeChange");
+
+        float elapsedTime = 0;
+        float animationTime = 1;
+
+        yield return null;
+        while (elapsedTime < animationTime * 0.5f) {
+            elapsedTime += Time.deltaTime;
+            float offset = -Mathf.Sin(elapsedTime * Mathf.PI / animationTime);
+            _hypercube.transform.localScale = Vector3.one * (1 + offset);
+            _hypercube.transform.localPosition = new Vector3(0, 0.5f * offset, 0);
+            yield return null;
+        }
+
+        if (setToPreviewMode) {
+            _hypercube.HighlightFace("None");
+        }
+        else {
+            _hypercube.EndHighlight();
+        }
+        _hypercube.transform.localScale = Vector3.zero;
+
+        while (elapsedTime < animationTime) {
+            elapsedTime += Time.deltaTime;
+            float offset = -Mathf.Sin(elapsedTime * Mathf.PI / animationTime);
+            _hypercube.transform.localScale = Vector3.one * (1 + offset);
+            _hypercube.transform.localPosition = new Vector3(0, 0.5f * offset, 0);
+            yield return null;
+        }
+
+        _hypercube.transform.localScale = Vector3.one;
+        _hypercube.transform.localPosition = Vector3.zero;
+        _isBusy = false;
+        _isPreviewMode = setToPreviewMode;
     }
 }

@@ -28,4 +28,9 @@ public class Observer : MonoBehaviour {
             yield return null;
         }
     }
+
+    // ! Needs implementing.
+    private IEnumerator TogglePosition(bool setToDefusePerspective) {
+        yield return null;
+    }
 }
