@@ -26,6 +26,12 @@ public class OrientationHypercubeModule : MonoBehaviour {
         { "Right Outer", "+W"},
         { "Left Outer", "-W"},
     };
+    private readonly string[] _eyeDirections = new string[] {
+        "front",
+        "right",
+        "back",
+        "left",
+    };
 
     [SerializeField] private Hypercube _hypercube;
     [SerializeField] private KMSelectable[] _rotationButtons;
@@ -43,6 +49,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
     private ReadGenerator _readGenerator;
 
     private string _axes = "XZYW";
+    private int _eyeRotation;
     private int[] _signs = new int[] { 1, 1, -1, 1 };
     private List<string> _inputtedRotations = new List<string>();
 
@@ -77,6 +84,12 @@ public class OrientationHypercubeModule : MonoBehaviour {
     private void Start() {
         _readGenerator.Generate();
         _hypercube.SetColours(_readGenerator.GetFaceColours());
+
+        _eyeRotation = 0;
+        for (int i = 0, j = Rnd.Range(0, 4); i < j; i++) {
+            ShiftPerspectiveRight();
+        }
+        Log($"The observer starts off facing the {_eyeDirections[_eyeRotation]}.");
     }
 
     private void HandleRotationPress(string buttonName) {
@@ -88,12 +101,14 @@ public class OrientationHypercubeModule : MonoBehaviour {
             _hypercube.QueueRotation(GetRotationDigits(_buttonToRotation[buttonName]));
         }
         else {
+            Log($"Pressed {buttonName.ToLower()}.");
             _inputtedRotations.Add(GetRotationDigits(_buttonToRotation[buttonName]));
             if (buttonName != "Left" && buttonName != "Right") {
                 // The observer can stay, move left, or move right with equal probability.
                 int rng = Rnd.Range(0, 3);
                 if (rng != 0) {
                     ShiftPerspectiveRight(reverse: rng == 1);
+                    Log($"The observer moved to face the {_eyeDirections[_eyeRotation]}.");
                 }
             }
         }
@@ -105,12 +120,16 @@ public class OrientationHypercubeModule : MonoBehaviour {
             _inputtedRotations.ForEach(r => _hypercube.QueueRotation(r));
             _inputtedRotations.Clear();
 
-            yield return new WaitUntil(() => !_hypercube.IsBusy);
+            while (_hypercube.IsBusy) {
+                _hypercube.RotationRate += Time.deltaTime * 0.3f;
+                yield return null;
+            }
+
             if (CorrectOrientation()) {
                 _module.HandlePass();
             }
             else {
-                Strike("Strike lol.");
+                Strike("The faces did not line up! Strike!");
                 _isBusy = false;
             }
         }
@@ -191,6 +210,8 @@ public class OrientationHypercubeModule : MonoBehaviour {
             _signs[yPos] = tempSign;
         }
 
+        _eyeRotation += 4 + (reverse ? -1 : 1);
+        _eyeRotation %= 4;
         _eye.MoveRight(reverse);
     }
 
@@ -202,6 +223,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
         _module.HandleStrike();
         Log($"✕ {strikeMessage}");
         _hypercube.ResetInitialFaceDirections();
+        _hypercube.RotationRate = 1;
         RehighlightFace();
     }
 
@@ -253,13 +275,20 @@ public class OrientationHypercubeModule : MonoBehaviour {
     private bool CorrectOrientation() {
         Face[] faces = _hypercube.GetFaces();
         string[] fromFaces = _readGenerator.FromFaces;
-        string[] toFaces = _readGenerator.ToFaces;
+        string[] expectedToFaces = _readGenerator.ToFaces;
+        string[] actualToFaces = new string[3];
 
         foreach (Face face in faces) {
-            if (fromFaces.Contains(face.InitialDirection) && toFaces[Array.IndexOf(fromFaces, face.InitialDirection)] != face.CurrentDirection) {
-                return false;
+            if (fromFaces.Contains(face.InitialDirection)) {
+                actualToFaces[Array.IndexOf(fromFaces, face.InitialDirection)] = face.CurrentDirection;
             }
         }
-        return true;
+
+        Log("The submitted rotations resulted in the following map:");
+        Log($"Red: {fromFaces[0]} to {actualToFaces[0]}.");
+        Log($"Green: {fromFaces[1]} to {actualToFaces[1]}.");
+        Log($"Blue: {fromFaces[2]} to {actualToFaces[2]}.");
+
+        return actualToFaces.Where((dir, ind) => dir != expectedToFaces[ind]).Count() == 0;
     }
 }

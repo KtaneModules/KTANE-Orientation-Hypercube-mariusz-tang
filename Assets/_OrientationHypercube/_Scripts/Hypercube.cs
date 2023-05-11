@@ -20,16 +20,17 @@ public class Hypercube : MonoBehaviour {
 
     private string _rotation = string.Empty;
     private float _rotationAngle = 0;
-    private float _rotationRate = 1;
     private Queue<string> _rotationQueue = new Queue<string>();
 
     private Dictionary<string, Color> _faceColours = new Dictionary<string, Color>();
 
     public float WobbleFactor { get; set; }
+    public float RotationRate { get; set; }
     public bool IsBusy { get; private set; }
 
     private void Awake() {
         WobbleFactor = 0.007f;
+        RotationRate = 1;
         _cubeMaterial = new Material(_baseMaterial);
 
         GenerateVertices();
@@ -108,7 +109,7 @@ public class Hypercube : MonoBehaviour {
     private void RotateHypercube() {
         Matrix4x4 matrix;
 
-        _rotationAngle += _rotationRate * Time.deltaTime;
+        _rotationAngle += RotationRate * Time.deltaTime;
         if (_rotationAngle < Mathf.PI / 2) {
             matrix = GetRotationMatrix(rotationIsComplete: false);
             _vertices.ForEach(v => v.Rotate4D(matrix));
