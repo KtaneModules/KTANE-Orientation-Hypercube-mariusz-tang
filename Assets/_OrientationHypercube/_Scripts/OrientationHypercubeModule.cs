@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using KModkit;
 using UnityEngine;
+using Rnd = UnityEngine.Random;
 
 public class OrientationHypercubeModule : MonoBehaviour {
 
@@ -27,7 +28,8 @@ public class OrientationHypercubeModule : MonoBehaviour {
     };
 
     [SerializeField] private Hypercube _hypercube;
-    [SerializeField] private KMSelectable[] _buttons;
+    [SerializeField] private KMSelectable[] _rotationButtons;
+    [SerializeField] private KMSelectable _setButton;
     [SerializeField] private KMSelectable[] _panel;
     [SerializeField] private KMSelectable _centrePanelButton;
     [SerializeField] private Animator _panelAnimator;
@@ -42,6 +44,9 @@ public class OrientationHypercubeModule : MonoBehaviour {
 
     private string _axes = "XZYW";
     private int[] _signs = new int[] { 1, 1, -1, 1 };
+    private List<string> _inputtedRotations = new List<string>();
+
+    private string _highlightedFace = string.Empty;
 
     private bool _isPreviewMode = false;
     private bool _isBusy = false;
@@ -53,14 +58,20 @@ public class OrientationHypercubeModule : MonoBehaviour {
         _module = GetComponent<KMBombModule>();
         _readGenerator = new ReadGenerator(this);
 
-        foreach (KMSelectable button in _buttons) {
-            button.OnInteract += delegate () { HandlePress(button.transform.name); return false; };
+        AssignInteractionHandlers();
+    }
+
+    private void AssignInteractionHandlers() {
+        foreach (KMSelectable button in _rotationButtons) {
+            button.OnInteract += delegate () { HandleRotationPress(button.transform.name); return false; };
         }
+        _setButton.OnInteract += delegate () { StartCoroutine(HandleSetPress()); return false; };
+
         foreach (KMSelectable panelButton in _panel) {
             panelButton.OnHighlight += delegate () { HandleHover(panelButton); };
             panelButton.OnHighlightEnded += delegate () { HandleUnhover(panelButton); };
         }
-        _centrePanelButton.OnInteract += delegate () { HandleCentrePress(); return false; };
+        _centrePanelButton.OnInteract += delegate () { StartCoroutine(HandleCentrePress()); return false; };
     }
 
     private void Start() {
@@ -68,31 +79,63 @@ public class OrientationHypercubeModule : MonoBehaviour {
         _hypercube.SetColours(_readGenerator.GetFaceColours());
     }
 
-    private void HandlePress(string buttonName) {
-        if (buttonName == "Set") {
-            ShiftPerspectiveRight(true);
+    private void HandleRotationPress(string buttonName) {
+        if (_isBusy) {
             return;
         }
 
-        _hypercube.QueueRotation(GetRotationDigits(_buttonToRotation[buttonName]));
+        if (_isPreviewMode) {
+            _hypercube.QueueRotation(GetRotationDigits(_buttonToRotation[buttonName]));
+        }
+        else {
+            _inputtedRotations.Add(GetRotationDigits(_buttonToRotation[buttonName]));
+            if (buttonName != "Left" && buttonName != "Right") {
+                // The observer can stay, move left, or move right with equal probability.
+                int rng = Rnd.Range(0, 3);
+                if (rng != 0) {
+                    ShiftPerspectiveRight(reverse: rng == 1);
+                }
+            }
+        }
+    }
+
+    private IEnumerator HandleSetPress() {
+        if (!_isPreviewMode) {
+            _isBusy = true;
+            _inputtedRotations.ForEach(r => _hypercube.QueueRotation(r));
+            _inputtedRotations.Clear();
+
+            yield return new WaitUntil(() => !_hypercube.IsBusy);
+            if (CorrectOrientation()) {
+                _module.HandlePass();
+            }
+            else {
+                Strike("Strike lol.");
+                _isBusy = false;
+            }
+        }
     }
 
     private void HandleHover(KMSelectable panelButton) {
         panelButton.GetComponent<MeshRenderer>().material.color = Color.white;
+        if (panelButton.transform.name != "Centre") {
+            _highlightedFace = _panelButtonDirections[panelButton.transform.name];
+        }
 
-        if (_isBusy || _isPreviewMode) {
+        if (_isBusy || _isPreviewMode || _inputtedRotations.Count() > 0) {
             return;
         }
 
         if (panelButton.transform.name != "Centre") {
-            _hypercube.HighlightFace(_panelButtonDirections[panelButton.transform.name]);
+            _hypercube.HighlightFace(_highlightedFace);
         }
     }
 
     private void HandleUnhover(KMSelectable panelButton) {
         panelButton.GetComponent<MeshRenderer>().material.color = Color.white * (49f / 255f);
+        _highlightedFace = string.Empty;
 
-        if (_isBusy || _isPreviewMode) {
+        if (_isBusy || _isPreviewMode || _inputtedRotations.Count() > 0) {
             return;
         }
 
@@ -101,18 +144,32 @@ public class OrientationHypercubeModule : MonoBehaviour {
         }
     }
 
-    private void HandleCentrePress() {
-        if (_isBusy) {
-            return;
+    private IEnumerator HandleCentrePress() {
+        if (_isBusy || _inputtedRotations.Count() > 0) {
+            yield break;
         }
+
+        _isBusy = true;
+        _hypercube.UpdateColours();
+        _hypercube.StopRotations();
+        yield return new WaitUntil(() => !_hypercube.IsBusy);
         StartCoroutine(ModeChangeAnimation(!_isPreviewMode));
     }
 
-    private string GetRotationDigits(string rotationLetters) {
-        int fromDigit = _axes.IndexOf(rotationLetters[0]);
-        int toDigit = _axes.IndexOf(rotationLetters[1]);
+    private void RehighlightFace() {
+        if (_highlightedFace.Length != 0) {
+            _hypercube.HighlightFace(_highlightedFace);
+        }
+    }
 
-        if (_signs[fromDigit] != _signs[toDigit]) {
+    private string GetRotationDigits(string rotationLetters) {
+        string axesToUse = _isPreviewMode ? "XYZW" : _axes;
+        int[] signsToUse = _isPreviewMode ? new int[] { 1, 1, 1, 1 } : _signs;
+
+        int fromDigit = axesToUse.IndexOf(rotationLetters[0]);
+        int toDigit = axesToUse.IndexOf(rotationLetters[1]);
+
+        if (signsToUse[fromDigit] != signsToUse[toDigit]) {
             return toDigit.ToString() + fromDigit.ToString();
         }
         return fromDigit.ToString() + toDigit.ToString();
@@ -144,6 +201,8 @@ public class OrientationHypercubeModule : MonoBehaviour {
     public void Strike(string strikeMessage) {
         _module.HandleStrike();
         Log($"✕ {strikeMessage}");
+        _hypercube.ResetInitialFaceDirections();
+        RehighlightFace();
     }
 
     private IEnumerator ModeChangeAnimation(bool setToPreviewMode) {
@@ -164,11 +223,17 @@ public class OrientationHypercubeModule : MonoBehaviour {
 
         if (setToPreviewMode) {
             _hypercube.HighlightFace("None");
+            _eye.ToggleDefuserPerspective(true);
         }
         else {
             _hypercube.EndHighlight();
+            _eye.ToggleDefuserPerspective(false);
         }
         _hypercube.transform.localScale = Vector3.zero;
+
+        if (!setToPreviewMode) {
+            RehighlightFace();
+        }
 
         while (elapsedTime < animationTime) {
             elapsedTime += Time.deltaTime;
@@ -182,5 +247,19 @@ public class OrientationHypercubeModule : MonoBehaviour {
         _hypercube.transform.localPosition = Vector3.zero;
         _isBusy = false;
         _isPreviewMode = setToPreviewMode;
+        _hypercube.ResetInitialFaceDirections();
+    }
+
+    private bool CorrectOrientation() {
+        Face[] faces = _hypercube.GetFaces();
+        string[] fromFaces = _readGenerator.FromFaces;
+        string[] toFaces = _readGenerator.ToFaces;
+
+        foreach (Face face in faces) {
+            if (fromFaces.Contains(face.InitialDirection) && toFaces[Array.IndexOf(fromFaces, face.InitialDirection)] != face.CurrentDirection) {
+                return false;
+            }
+        }
+        return true;
     }
 }

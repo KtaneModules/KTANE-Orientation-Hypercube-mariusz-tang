@@ -31,3 +31,5 @@ For each colour channel, read positives and negatives as two separate binary num
 Determine an offset by which to shift the negatives relative to the positives, then XOR/XNOR (based on some condition) the new pairs.
 If pairs did not shift, assign each colour the number obtained from its pair, otherwise assign from the pair containing the other two colours.
 Decide on which two bits from each number to consider to pair up axes (can use total appearances of each colour? primary vs secondary appearances?).
+
+Need to indicate in some way that input has started, eg panel will start pulsing.

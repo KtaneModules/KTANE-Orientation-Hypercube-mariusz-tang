@@ -9,7 +9,7 @@ public class Observer : MonoBehaviour {
     private Coroutine _moveAnimation;
     private int _internalPosition = 0;
 
-    public void MoveRight(bool reverse) {
+    public void MoveRight(bool reverse = false) {
         _internalPosition += reverse ? 90 : -90;
 
         if (_moveAnimation != null) {
@@ -29,8 +29,12 @@ public class Observer : MonoBehaviour {
         }
     }
 
-    // ! Needs implementing.
-    private IEnumerator TogglePosition(bool setToDefusePerspective) {
-        yield return null;
+    public void ToggleDefuserPerspective(bool setToDefusePerspective) {
+        if (setToDefusePerspective) {
+            transform.localRotation = Quaternion.Euler(90, 0, 90);
+        }
+        else {
+            transform.localRotation = Quaternion.Euler(0, _internalPosition, 90);
+        }
     }
 }

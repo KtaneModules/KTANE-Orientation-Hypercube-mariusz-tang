@@ -69,6 +69,10 @@ public class Face : MonoBehaviour {
         CurrentDirection = direction;
     }
 
+    public void ResetDirection() {
+        InitialDirection = CurrentDirection;
+    }
+
     public void UpdateVertices() {
         _filter.mesh.vertices = _vertices.Select(v => v.transform.localPosition).ToArray();
         _filter.mesh.RecalculateNormals();
