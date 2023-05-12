@@ -11,10 +11,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 615501dbe4f3fe94fbf4b564abb10237, type: 3}
   m_Name: ModConfig
   m_EditorClassIdentifier: 
-  id: ohyper
+  id: orientationHypercube
   title: Orientation Hypercube
   author: Kuro
-  description: ye
+  description: 'If the bomb doesn''t kill us, a higher-dimensional creature rotating
+    our brains sure will!
+
+
+    Rotate a hypercube in 4D space to reach the target orientation.
+
+
+    Manual can be found at ktane.timwi.de or in the manuals folder of your game.
+
+
+    Report bugs to Kuro#2011 on Discord.'
   version: 1
   outputFolder: build
   previewImage: {fileID: 0}
