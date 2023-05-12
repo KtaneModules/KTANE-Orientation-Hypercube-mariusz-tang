@@ -34,6 +34,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
     };
 
     [SerializeField] private Hypercube _hypercube;
+    [SerializeField] private HyperStatusLight _statusLight;
     [SerializeField] private KMSelectable[] _rotationButtons;
     [SerializeField] private KMSelectable _setButton;
     [SerializeField] private KMSelectable[] _panel;
@@ -56,6 +57,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
     private string _highlightedFace = string.Empty;
 
     private bool _isPreviewMode = false;
+    private bool _isRecovery = false;
     private bool _isBusy = false;
 
     private void Awake() {
@@ -71,8 +73,10 @@ public class OrientationHypercubeModule : MonoBehaviour {
     private void AssignInteractionHandlers() {
         foreach (KMSelectable button in _rotationButtons) {
             button.OnInteract += delegate () { HandleRotationPress(button.transform.name); return false; };
+            button.OnInteractEnded += delegate () { PlaySound("Button Release"); };
         }
         _setButton.OnInteract += delegate () { StartCoroutine(HandleSetPress()); return false; };
+        _setButton.OnInteractEnded += delegate () { PlaySound("Button Release"); };
 
         foreach (KMSelectable panelButton in _panel) {
             panelButton.OnHighlight += delegate () { HandleHover(panelButton); };
@@ -89,11 +93,13 @@ public class OrientationHypercubeModule : MonoBehaviour {
         for (int i = 0, j = Rnd.Range(0, 4); i < j; i++) {
             ShiftPerspectiveRight();
         }
+        Log("-=-=-=- Start -=-=-=-");
         Log($"The observer starts off facing the {_eyeDirections[_eyeRotation]}.");
     }
 
     private void HandleRotationPress(string buttonName) {
-        if (_isBusy) {
+        PlaySound("Button Press");
+        if (_isBusy || _isRecovery) {
             return;
         }
 
@@ -115,8 +121,19 @@ public class OrientationHypercubeModule : MonoBehaviour {
     }
 
     private IEnumerator HandleSetPress() {
-        if (!_isPreviewMode) {
+        PlaySound("Button Press");
+        if (_isRecovery) {
+            _hypercube.ResetInitialFaceDirections();
+            _hypercube.UpdateColours();
+            _hypercube.EndHighlight();
+            RehighlightFace();
+            _isRecovery = false;
+        }
+        else if (!_isPreviewMode) {
             _isBusy = true;
+            Log("-=-=-=- Submit -=-=-=-");
+            PlaySound("Start Submission");
+            yield return StartCoroutine(_hypercube.DisplayFromFaces(_readGenerator.FromFaces));
             _inputtedRotations.ForEach(r => _hypercube.QueueRotation(r));
             _inputtedRotations.Clear();
 
@@ -127,9 +144,13 @@ public class OrientationHypercubeModule : MonoBehaviour {
 
             if (CorrectOrientation()) {
                 _module.HandlePass();
+                _statusLight.SolvedState();
+                PlaySound("Solve");
+                Log("Submitted the correct orientation!");
+                Log("-=-=-=- Solved -=-=-=-");
             }
             else {
-                Strike("The faces did not line up! Strike!");
+                StartCoroutine(Strike("The faces did not get mapped to the correct places! Strike!"));
                 _isBusy = false;
             }
         }
@@ -137,11 +158,12 @@ public class OrientationHypercubeModule : MonoBehaviour {
 
     private void HandleHover(KMSelectable panelButton) {
         panelButton.GetComponent<MeshRenderer>().material.color = Color.white;
+        PlaySound("Hover");
         if (panelButton.transform.name != "Centre") {
             _highlightedFace = _panelButtonDirections[panelButton.transform.name];
         }
 
-        if (_isBusy || _isPreviewMode || _inputtedRotations.Count() > 0) {
+        if (_isBusy || _isPreviewMode || _isRecovery) {
             return;
         }
 
@@ -154,7 +176,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
         panelButton.GetComponent<MeshRenderer>().material.color = Color.white * (49f / 255f);
         _highlightedFace = string.Empty;
 
-        if (_isBusy || _isPreviewMode || _inputtedRotations.Count() > 0) {
+        if (_isBusy || _isPreviewMode || _isRecovery) {
             return;
         }
 
@@ -164,7 +186,11 @@ public class OrientationHypercubeModule : MonoBehaviour {
     }
 
     private IEnumerator HandleCentrePress() {
-        if (_isBusy || _inputtedRotations.Count() > 0) {
+        if (_isBusy || _isRecovery) {
+            yield break;
+        }
+        if (_inputtedRotations.Count() > 0) {
+            PlaySound("Cannot Change Mode");
             yield break;
         }
 
@@ -219,17 +245,36 @@ public class OrientationHypercubeModule : MonoBehaviour {
         Debug.Log($"[Orientation Hypercube #{_moduleId}] {message}");
     }
 
-    public void Strike(string strikeMessage) {
+    public IEnumerator Strike(string strikeMessage) {
+        float elapsedTime = 0;
+        float animationTime = 0.5f;
+
+        _statusLight.StrikeFlash();
+        PlaySound("Strike");
         _module.HandleStrike();
+
+        yield return null;
+        while (elapsedTime < animationTime) {
+            elapsedTime += Time.deltaTime;
+            _hypercube.WobbleFactor = Hypercube.BASE_WOBBLE_FACTOR * 510 * Mathf.Sin(elapsedTime / animationTime * Mathf.PI);
+            yield return null;
+        }
+        _hypercube.WobbleFactor = Hypercube.BASE_WOBBLE_FACTOR;
+
         Log($"✕ {strikeMessage}");
-        _hypercube.ResetInitialFaceDirections();
+        Log("-=-=-=- Reset -=-=-=-");
         _hypercube.RotationRate = 1;
-        RehighlightFace();
+        _isRecovery = true;
+    }
+
+    public void PlaySound(string soundName) {
+        _audio.PlaySoundAtTransform(soundName, transform);
     }
 
     private IEnumerator ModeChangeAnimation(bool setToPreviewMode) {
         _isBusy = true;
         _panelAnimator.SetTrigger("ModeChange");
+        PlaySound("Mode Change");
 
         float elapsedTime = 0;
         float animationTime = 1;

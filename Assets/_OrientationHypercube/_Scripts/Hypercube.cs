@@ -8,10 +8,14 @@ using Rnd = UnityEngine.Random;
 
 public class Hypercube : MonoBehaviour {
 
+    public const float BASE_WOBBLE_FACTOR = 0.007f;
+
     [SerializeField] private GameObject _vertex;
     [SerializeField] private GameObject _edge;
     [SerializeField] private GameObject _face;
     [SerializeField] private Material _baseMaterial;
+
+    private OrientationHypercubeModule _module;
 
     private List<Vertex> _vertices;
     private List<Edge> _edges;
@@ -29,7 +33,7 @@ public class Hypercube : MonoBehaviour {
     public bool IsBusy { get; private set; }
 
     private void Awake() {
-        WobbleFactor = 0.007f;
+        WobbleFactor = BASE_WOBBLE_FACTOR;
         RotationRate = 1;
         _cubeMaterial = new Material(_baseMaterial);
 
@@ -40,6 +44,7 @@ public class Hypercube : MonoBehaviour {
 
     private void GenerateVertices() {
         _vertices = new List<Vertex>();
+        _module = GetComponentInParent<OrientationHypercubeModule>();
 
         for (int i = 0; i < 16; i++) {
             _vertices.Add(Instantiate(_vertex, transform).GetComponent<Vertex>());
@@ -148,6 +153,7 @@ public class Hypercube : MonoBehaviour {
             _rotation = _rotationQueue.Dequeue();
 
             _faces.ForEach(f => f.UpdateCurrentDirection(_rotation));
+            _module.PlaySound("Rotation");
         }
         else {
             _rotation = string.Empty;
@@ -208,5 +214,35 @@ public class Hypercube : MonoBehaviour {
 
     public Face[] GetFaces() {
         return _faces.ToArray();
+    }
+
+    public IEnumerator DisplayFromFaces(string[] fromFaces) {
+        float elapsedTime = 0;
+        float animationTime = 1;
+
+        yield return null;
+
+        while (elapsedTime < animationTime) {
+            elapsedTime += Time.deltaTime;
+            _faces.ForEach(f => f.Colour = new Color(_faceColours[f.CurrentDirection].r,
+                                                    _faceColours[f.CurrentDirection].g,
+                                                    _faceColours[f.CurrentDirection].b,
+                                                    0.25f * (1 - elapsedTime / animationTime)));
+            yield return null;
+        }
+
+        _faces.ForEach(f => f.Colour = Color.black * 0);
+        yield return new WaitForSeconds(0.5f);
+
+        Color[] fromColours = new Color[] { Color.red, Color.green, Color.blue };
+        for (int i = 0; i < _faces.Count(); i++) {
+            if (!fromFaces.Contains(_faces[i].InitialDirection)) {
+                _faces[i].GetComponent<MeshRenderer>().enabled = false;
+            }
+            else {
+                _faces[i].GetComponent<MeshRenderer>().enabled = true;
+                _faces[i].Colour = fromColours[Array.IndexOf(fromFaces, _faces[i].InitialDirection)] * new Color(1, 1, 1, 0.25f);
+            }
+        }
     }
 }
