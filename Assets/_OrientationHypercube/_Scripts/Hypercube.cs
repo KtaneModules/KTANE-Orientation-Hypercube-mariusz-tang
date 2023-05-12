@@ -218,7 +218,8 @@ public class Hypercube : MonoBehaviour {
 
     public IEnumerator DisplayFromFaces(string[] fromFaces) {
         float elapsedTime = 0;
-        float animationTime = 1;
+        float animationTime = 0.75f;
+        int[] fromIndices = new int[3];
 
         yield return null;
 
@@ -232,17 +233,27 @@ public class Hypercube : MonoBehaviour {
         }
 
         _faces.ForEach(f => f.Colour = Color.black * 0);
-        yield return new WaitForSeconds(0.5f);
 
-        Color[] fromColours = new Color[] { Color.red, Color.green, Color.blue };
         for (int i = 0; i < _faces.Count(); i++) {
             if (!fromFaces.Contains(_faces[i].InitialDirection)) {
                 _faces[i].GetComponent<MeshRenderer>().enabled = false;
             }
             else {
                 _faces[i].GetComponent<MeshRenderer>().enabled = true;
-                _faces[i].Colour = fromColours[Array.IndexOf(fromFaces, _faces[i].InitialDirection)] * new Color(1, 1, 1, 0.25f);
+                fromIndices[Array.IndexOf(fromFaces, _faces[i].InitialDirection)] = i;
             }
         }
+
+        Color[] fromColours = new Color[] { Color.red, Color.green, Color.blue };
+        elapsedTime = 0;
+        while (elapsedTime < animationTime) {
+            for (int i = 0; i < 3; i++) {
+                elapsedTime += Time.deltaTime;
+                _faces[fromIndices[i]].Colour = fromColours[i] * new Color(1, 1, 1, 0.25f * elapsedTime / animationTime);
+                yield return null;
+            }
+        }
+
+        yield return new WaitForSeconds(0.5f);
     }
 }

@@ -35,11 +35,16 @@ public class OrientationHypercubeModule : MonoBehaviour {
 
     [SerializeField] private Hypercube _hypercube;
     [SerializeField] private HyperStatusLight _statusLight;
+    [SerializeField] private KMSelectable _statusLightButton;
+
     [SerializeField] private KMSelectable[] _rotationButtons;
     [SerializeField] private KMSelectable _setButton;
+
     [SerializeField] private KMSelectable[] _panel;
     [SerializeField] private KMSelectable _centrePanelButton;
     [SerializeField] private Animator _panelAnimator;
+    [SerializeField] private TextMesh _cbText;
+
     [SerializeField] private Observer _eye;
 
     private static int _moduleCount = 0;
@@ -59,6 +64,8 @@ public class OrientationHypercubeModule : MonoBehaviour {
     private bool _isPreviewMode = false;
     private bool _isRecovery = false;
     private bool _isBusy = false;
+    private bool _isMuted = false;
+    private bool _cbModeOn = false;
 
     private void Awake() {
         _moduleId = _moduleCount++;
@@ -83,6 +90,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
             panelButton.OnHighlightEnded += delegate () { HandleUnhover(panelButton); };
         }
         _centrePanelButton.OnInteract += delegate () { StartCoroutine(HandleCentrePress()); return false; };
+        _statusLightButton.OnInteract += delegate () { PlaySound("Rotation"); _cbModeOn = !_cbModeOn; return false; };
     }
 
     private void Start() {
@@ -94,7 +102,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
             ShiftPerspectiveRight();
         }
         Log("-=-=-=- Start -=-=-=-");
-        Log($"The observer starts off facing the {_eyeDirections[_eyeRotation]}.");
+        Log($"The observer starts off facing the {_eyeDirections[_eyeRotation]} face.");
     }
 
     private void HandleRotationPress(string buttonName) {
@@ -125,7 +133,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
         if (_isRecovery) {
             _hypercube.ResetInitialFaceDirections();
             _hypercube.UpdateColours();
-            _hypercube.EndHighlight();
+            Unhighlight();
             RehighlightFace();
             _isRecovery = false;
         }
@@ -142,12 +150,12 @@ public class OrientationHypercubeModule : MonoBehaviour {
                 yield return null;
             }
 
+            KMAudio.KMAudioRef thinkingSound = _audio.PlaySoundAtTransformWithRef("Thinking", transform);
+            yield return new WaitForSeconds(3);
+            thinkingSound.StopSound();
+
             if (CorrectOrientation()) {
-                _module.HandlePass();
-                _statusLight.SolvedState();
-                PlaySound("Solve");
-                Log("Submitted the correct orientation!");
-                Log("-=-=-=- Solved -=-=-=-");
+                StartCoroutine(SolveAnimation());
             }
             else {
                 StartCoroutine(Strike("The faces did not get mapped to the correct places! Strike!"));
@@ -169,6 +177,9 @@ public class OrientationHypercubeModule : MonoBehaviour {
 
         if (panelButton.transform.name != "Centre") {
             _hypercube.HighlightFace(_highlightedFace);
+            if (_cbModeOn) {
+                _cbText.text = _readGenerator.GetCbText(_highlightedFace);
+            }
         }
     }
 
@@ -181,8 +192,13 @@ public class OrientationHypercubeModule : MonoBehaviour {
         }
 
         if (panelButton.transform.name != "Centre") {
-            _hypercube.EndHighlight();
+            Unhighlight();
         }
+    }
+
+    private void Unhighlight() {
+        _cbText.text = string.Empty;
+        _hypercube.EndHighlight();
     }
 
     private IEnumerator HandleCentrePress() {
@@ -268,7 +284,9 @@ public class OrientationHypercubeModule : MonoBehaviour {
     }
 
     public void PlaySound(string soundName) {
-        _audio.PlaySoundAtTransform(soundName, transform);
+        if (!_isMuted) {
+            _audio.PlaySoundAtTransform(soundName, transform);
+        }
     }
 
     private IEnumerator ModeChangeAnimation(bool setToPreviewMode) {
@@ -293,7 +311,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
             _eye.ToggleDefuserPerspective(true);
         }
         else {
-            _hypercube.EndHighlight();
+            Unhighlight();
             _eye.ToggleDefuserPerspective(false);
         }
         _hypercube.transform.localScale = Vector3.zero;
@@ -335,5 +353,53 @@ public class OrientationHypercubeModule : MonoBehaviour {
         Log($"Blue: {fromFaces[2]} to {actualToFaces[2]}.");
 
         return actualToFaces.Where((dir, ind) => dir != expectedToFaces[ind]).Count() == 0;
+    }
+
+    private IEnumerator SolveAnimation() {
+        _isBusy = true;
+
+        _hypercube.UpdateColours();
+        Unhighlight();
+
+        _module.HandlePass();
+        _statusLight.SolvedState();
+        PlaySound("Solve");
+        _isMuted = true;
+        Log("Submitted the correct orientation!");
+        Log("-=-=-=- Solved -=-=-=-");
+
+        float elapsedTime = 0;
+        float[] rotationSpeeds = new float[3];
+        float[] mobileOffsets = new float[3];
+        float[] currentRotations = new float[3];
+
+        for (int i = 0; i < 3; i++) {
+            rotationSpeeds[i] = Rnd.Range(0.5f, 1.5f);
+            mobileOffsets[i] = Rnd.Range(0.1f, 0.5f);
+        }
+
+        while (true) {
+            elapsedTime += Time.deltaTime;
+
+            // Done like this so that it always begins pointing upwards, ie. no rotation.
+            currentRotations[0] = Mathf.Sin((rotationSpeeds[0] + mobileOffsets[0]) * elapsedTime);
+            currentRotations[1] = Mathf.Cos((rotationSpeeds[1] + mobileOffsets[1]) * elapsedTime);
+            currentRotations[2] = Mathf.Sin((rotationSpeeds[2] + mobileOffsets[2]) * elapsedTime);
+
+            if (_hypercube.transform.localPosition.y < 0.2f) {
+                _hypercube.transform.localPosition += Vector3.up * Time.deltaTime * 0.1f; ;
+            }
+            _hypercube.transform.rotation = Quaternion.FromToRotation(Vector3.up, new Vector3(currentRotations[0], currentRotations[1], currentRotations[2]));
+
+            if (!_hypercube.IsBusy) {
+                _hypercube.QueueRotation("03");
+                _hypercube.QueueRotation("13");
+                _hypercube.QueueRotation("23");
+                _hypercube.QueueRotation("30");
+                _hypercube.QueueRotation("31");
+                _hypercube.QueueRotation("32");
+            }
+            yield return null;
+        }
     }
 }

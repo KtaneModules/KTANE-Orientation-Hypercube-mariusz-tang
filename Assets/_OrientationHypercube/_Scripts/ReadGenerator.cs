@@ -7,11 +7,21 @@ using Rnd = UnityEngine.Random;
 public class ReadGenerator {
 
     private const string AXES = "XYZW";
-    private readonly Dictionary<char, string> _axisBits = new Dictionary<char, string> {
+    private readonly Dictionary<char, string> AxisBits = new Dictionary<char, string> {
         { 'X', "00" },
         { 'Y', "01" },
         { 'Z', "10" },
         { 'W', "11" },
+    };
+    private readonly Dictionary<string, string> ColourLetters = new Dictionary<string, string> {
+        { "000","K" },
+        { "001","B" },
+        { "010","G" },
+        { "011","C" },
+        { "100","R" },
+        { "101","M" },
+        { "110","Y" },
+        { "111","W" },
     };
 
     private OrientationHypercubeModule _module;
@@ -21,6 +31,8 @@ public class ReadGenerator {
 
     private string[] _positiveBinaries = new string[3];
     private string[] _negativeBinaries = new string[3];
+    private Dictionary<string, Color> _faceColours = new Dictionary<string, Color>();
+    private Dictionary<string, string> _cbTexts = new Dictionary<string, string>();
 
     public string[] FromFaces { get; private set; }
     public string[] ToFaces { get; private set; }
@@ -39,6 +51,26 @@ public class ReadGenerator {
         _reversedLogging.Reverse();
         foreach (string message in _reversedLogging) {
             _module.Log(message);
+        }
+
+        for (int i = 0; i < 4; i++) {
+            int rValue = _positiveBinaries[0][i] - '0';
+            int gValue = _positiveBinaries[1][i] - '0';
+            int bValue = _positiveBinaries[2][i] - '0';
+            Color newColour = GetColourFromRGB(rValue, gValue, bValue);
+
+            string face = $"+{"XYZW"[i]}";
+            _faceColours.Add(face, newColour);
+            _cbTexts.Add(face, ColourLetters[$"{_positiveBinaries[0][i]}{_positiveBinaries[1][i]}{_positiveBinaries[2][i]}"]);
+
+            rValue = _negativeBinaries[0][i] - '0';
+            gValue = _negativeBinaries[1][i] - '0';
+            bValue = _negativeBinaries[2][i] - '0';
+            newColour = GetColourFromRGB(rValue, gValue, bValue);
+
+            face = $"-{"XYZW"[i]}";
+            _faceColours.Add(face, newColour);
+            _cbTexts.Add(face, ColourLetters[$"{_negativeBinaries[0][i]}{_negativeBinaries[1][i]}{_negativeBinaries[2][i]}"]);
         }
     }
 
@@ -77,7 +109,7 @@ public class ReadGenerator {
     private void GetFinalBinaries() {
         for (int i = 0; i < 3; i++) {
             int thirdBit = Rnd.Range(0, 2);
-            _negativeBinaries[i] = _axisBits[FromFaces[i][1]];
+            _negativeBinaries[i] = AxisBits[FromFaces[i][1]];
             _negativeBinaries[i] += thirdBit;
 
             if (FromFaces[i][0] == '-') {
@@ -88,7 +120,7 @@ public class ReadGenerator {
             }
 
             thirdBit = Rnd.Range(0, 2);
-            _positiveBinaries[i] = _axisBits[ToFaces[i][1]];
+            _positiveBinaries[i] = AxisBits[ToFaces[i][1]];
             _positiveBinaries[i] += thirdBit;
 
             if (ToFaces[i][0] == '-') {
@@ -147,23 +179,11 @@ public class ReadGenerator {
     }
 
     public Dictionary<string, Color> GetFaceColours() {
-        var faceColours = new Dictionary<string, Color>();
+        return _faceColours;
+    }
 
-        for (int i = 0; i < 4; i++) {
-            int rValue = _positiveBinaries[0][i] - '0';
-            int gValue = _positiveBinaries[1][i] - '0';
-            int bValue = _positiveBinaries[2][i] - '0';
-            Color newColour = GetColourFromRGB(rValue, gValue, bValue);
-            faceColours.Add($"+{"XYZW"[i]}", newColour);
-
-            rValue = _negativeBinaries[0][i] - '0';
-            gValue = _negativeBinaries[1][i] - '0';
-            bValue = _negativeBinaries[2][i] - '0';
-            newColour = GetColourFromRGB(rValue, gValue, bValue);
-            faceColours.Add($"-{"XYZW"[i]}", newColour);
-        }
-
-        return faceColours;
+    public string GetCbText(string direction) {
+        return _cbTexts[direction];
     }
 
     private Color GetColourFromRGB(int rValue, int gValue, int bValue) {
@@ -174,4 +194,5 @@ public class ReadGenerator {
             return new Color(0, 0, 0, 0);
         }
     }
+
 }
