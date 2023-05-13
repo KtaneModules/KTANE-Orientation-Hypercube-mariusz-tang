@@ -130,6 +130,10 @@ public class OrientationHypercubeModule : MonoBehaviour {
 
     private IEnumerator HandleSetPress() {
         PlaySound("Button Press");
+
+        if (_isBusy) {
+            yield break;
+        }
         if (_isRecovery) {
             _hypercube.ResetInitialFaceDirections();
             _hypercube.UpdateColours();
@@ -220,6 +224,9 @@ public class OrientationHypercubeModule : MonoBehaviour {
     private void RehighlightFace() {
         if (_highlightedFace.Length != 0) {
             _hypercube.HighlightFace(_highlightedFace);
+            if (_cbModeOn) {
+                _cbText.text = _readGenerator.GetCbText(_highlightedFace);
+            }
         }
     }
 
@@ -306,19 +313,16 @@ public class OrientationHypercubeModule : MonoBehaviour {
             yield return null;
         }
 
+        Unhighlight();
         if (setToPreviewMode) {
             _hypercube.HighlightFace("None");
             _eye.ToggleDefuserPerspective(true);
         }
         else {
-            Unhighlight();
             _eye.ToggleDefuserPerspective(false);
-        }
-        _hypercube.transform.localScale = Vector3.zero;
-
-        if (!setToPreviewMode) {
             RehighlightFace();
         }
+        _hypercube.transform.localScale = Vector3.zero;
 
         while (elapsedTime < animationTime) {
             elapsedTime += Time.deltaTime;
