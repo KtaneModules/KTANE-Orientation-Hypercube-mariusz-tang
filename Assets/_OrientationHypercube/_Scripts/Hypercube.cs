@@ -236,6 +236,7 @@ public class Hypercube : MonoBehaviour {
 
         for (int i = 0; i < _faces.Count(); i++) {
             if (!fromFaces.Contains(_faces[i].InitialDirection)) {
+                _faces[i].Colour = new Color(0, 0, 0, 0);
                 _faces[i].GetComponent<MeshRenderer>().enabled = false;
             }
             else {

@@ -175,15 +175,12 @@ public class OrientationHypercubeModule : MonoBehaviour {
             _highlightedFace = _panelButtonDirections[panelButton.transform.name];
         }
 
-        if (_isBusy || _isPreviewMode || _isRecovery) {
+        if (_isBusy || _isPreviewMode) {
             return;
         }
 
         if (panelButton.transform.name != "Centre") {
-            _hypercube.HighlightFace(_highlightedFace);
-            if (_cbModeOn) {
-                _cbText.text = _readGenerator.GetCbText(_highlightedFace);
-            }
+            Highlight();
         }
     }
 
@@ -191,13 +188,32 @@ public class OrientationHypercubeModule : MonoBehaviour {
         panelButton.GetComponent<MeshRenderer>().material.color = Color.white * (49f / 255f);
         _highlightedFace = string.Empty;
 
-        if (_isBusy || _isPreviewMode || _isRecovery) {
+        if (_isBusy || _isPreviewMode) {
             return;
         }
 
         if (panelButton.transform.name != "Centre") {
             Unhighlight();
         }
+    }
+
+    private void Highlight() {
+        _hypercube.HighlightFace(_highlightedFace);
+        if (_cbModeOn) {
+            if (!_isRecovery) {
+                _cbText.text = _readGenerator.GetCbText(_highlightedFace);
+            }
+            else {
+                _cbText.text = GetRecoveryCbText(_highlightedFace);
+            }
+        }
+    }
+
+    private string GetRecoveryCbText(string face) {
+        if (_readGenerator.FromFaces.Contains(face)) {
+            return "RGB"[Array.IndexOf(_readGenerator.FromFaces, face)].ToString();
+        }
+        return "K";
     }
 
     private void Unhighlight() {
@@ -223,10 +239,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
 
     private void RehighlightFace() {
         if (_highlightedFace.Length != 0) {
-            _hypercube.HighlightFace(_highlightedFace);
-            if (_cbModeOn) {
-                _cbText.text = _readGenerator.GetCbText(_highlightedFace);
-            }
+            Highlight();
         }
     }
 
@@ -288,6 +301,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
         Log("-=-=-=- Reset -=-=-=-");
         _hypercube.RotationRate = 1;
         _isRecovery = true;
+        RehighlightFace();
     }
 
     public void PlaySound(string soundName) {
