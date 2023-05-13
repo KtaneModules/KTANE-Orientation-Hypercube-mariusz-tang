@@ -563,7 +563,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
             _currentFaceMaps.Add(pair.Value, pair.Value);
         }
         foreach (string rotation in _inputtedRotations) {
-            UpdateRotationMap(rotation);
+            UpdateRotationMapByDigits(rotation);
         }
 
         GenerateRotationSequence();
@@ -616,6 +616,10 @@ public class OrientationHypercubeModule : MonoBehaviour {
             }
         }
         _currentFaceMaps = new Dictionary<string, string>(newFaceMaps);
+    }
+
+    private void UpdateRotationMapByDigits(string rotation) {
+        UpdateRotationMap($"{"XYZW"[rotation[0] - '0']}{"XYZW"[rotation[1] - '0']}");
     }
 
     private void GenerateRotationSequence() {

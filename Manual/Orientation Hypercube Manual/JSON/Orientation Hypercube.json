@@ -1,18 +1,18 @@
 {
   "Compatibility": "Compatible",
   "Contributors": { "Developer": [ "Kuro" ] },
-  "CustomDefuserDifficulty": "wibblewobble",
-  "CustomExpertDifficulty": "woOOooOOo",
+  "CustomDefuserDifficulty": "wobble",
+  "CustomExpertDifficulty": "lavenda",
   "DefuserDifficulty": "Easy",
-  "Description": "Rotate a hypercube in 4D space to reach the target orientation. Tags: hypercube, up, down, left, right, arrow, rotate, clockwise, anticlockwise, set",
+  "Description": "Rotate a hypercube in 4D space to reach the target orientation. Tags: hypercube, up, down, left, right, arrow, rotate, clockwise, anticlockwise, set, colours",
   "ExpertDifficulty": "VeryHard",
   "ModuleID": "OrientationHypercube",
   "Name": "Orientation Hypercube",
   "Origin": "Mods",
-  "Published": "2023-04-28",
+  "Published": "2023-05-13",
   "SortKey": "ORIENTATIONHYPERCUBE",
   "SourceUrl": "https://github.com/TheKuroEver/KTANE-Orientation-Hypercube",
-  "SteamID": "??????",
+  "SteamID": "2975470554",
   "Symbol": "Ohqb",
   "Type": "Regular"
 }
