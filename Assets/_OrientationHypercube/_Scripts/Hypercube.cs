@@ -189,6 +189,11 @@ public class Hypercube : MonoBehaviour {
         }
     }
 
+    public void HighlightFace(string direction, out string initialDirection) {
+        HighlightFace(direction);
+        initialDirection = _faces.First(f => f.CurrentDirection == direction).InitialDirection;
+    }
+
     public void EndHighlight() {
         _faces.ForEach(f => f.GetComponent<MeshRenderer>().enabled = true);
         _cubeMaterial.color = Color.white;

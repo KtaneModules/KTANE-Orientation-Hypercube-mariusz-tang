@@ -198,13 +198,14 @@ public class OrientationHypercubeModule : MonoBehaviour {
     }
 
     private void Highlight() {
-        _hypercube.HighlightFace(_highlightedFace);
+        string direction;
+        _hypercube.HighlightFace(_highlightedFace, out direction);
         if (_cbModeOn) {
             if (!_isRecovery) {
                 _cbText.text = _readGenerator.GetCbText(_highlightedFace);
             }
             else {
-                _cbText.text = GetRecoveryCbText(_highlightedFace);
+                _cbText.text = GetRecoveryCbText(direction);
             }
         }
     }
