@@ -9,12 +9,12 @@ using Rnd = UnityEngine.Random;
 public class OrientationHypercubeModule : MonoBehaviour {
 
     private readonly Dictionary<string, string> _buttonToRotation = new Dictionary<string, string> {
-        {"Left", "XY"},
-        {"Right", "YX"},
-        {"In", "WY"},
-        {"Out", "YW"},
-        {"Clock", "ZX"},
-        {"Counter", "XZ"},
+        {"LEFT", "XY"},
+        {"RIGHT", "YX"},
+        {"IN", "WY"},
+        {"OUT", "YW"},
+        {"CLOCK", "ZX"},
+        {"COUNTER", "XZ"},
     };
     private readonly Dictionary<string, string> _panelButtonDirections = new Dictionary<string, string> {
         { "Right Inner", "+X"},
@@ -79,7 +79,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
 
     private void AssignInteractionHandlers() {
         foreach (KMSelectable button in _rotationButtons) {
-            button.OnInteract += delegate () { HandleRotationPress(button.transform.name); return false; };
+            button.OnInteract += delegate () { HandleRotationPress(button.transform.name.ToUpper()); return false; };
             button.OnInteractEnded += delegate () { PlaySound("Button Release"); };
         }
         _setButton.OnInteract += delegate () { StartCoroutine(HandleSetPress()); return false; };
@@ -135,11 +135,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
             yield break;
         }
         if (_isRecovery) {
-            _hypercube.ResetInitialFaceDirections();
-            _hypercube.UpdateColours();
-            Unhighlight();
-            RehighlightFace();
-            _isRecovery = false;
+            EndRecovery();
         }
         else if (!_isPreviewMode) {
             _isBusy = true;
@@ -163,7 +159,6 @@ public class OrientationHypercubeModule : MonoBehaviour {
             }
             else {
                 StartCoroutine(Strike("The faces did not get mapped to the correct places! Strike!"));
-                _isBusy = false;
             }
         }
     }
@@ -222,13 +217,25 @@ public class OrientationHypercubeModule : MonoBehaviour {
         _hypercube.EndHighlight();
     }
 
+    private void EndRecovery() {
+        _hypercube.ResetInitialFaceDirections();
+        _hypercube.UpdateColours();
+        Unhighlight();
+        RehighlightFace();
+        _isRecovery = false;
+    }
+
     private IEnumerator HandleCentrePress() {
-        if (_isBusy || _isRecovery) {
+        if (_isBusy) {
             yield break;
         }
         if (_inputtedRotations.Count() > 0) {
             PlaySound("Cannot Change Mode");
             yield break;
+        }
+
+        if (_isRecovery) {
+            EndRecovery();
         }
 
         _isBusy = true;
@@ -286,6 +293,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
         float elapsedTime = 0;
         float animationTime = 0.5f;
 
+        _isBusy = true;
         _statusLight.StrikeFlash();
         PlaySound("Strike");
         _module.HandleStrike();
@@ -302,6 +310,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
         Log("-=-=-=- Reset -=-=-=-");
         _hypercube.RotationRate = 1;
         _isRecovery = true;
+        _isBusy = false;
         RehighlightFace();
     }
 
@@ -370,7 +379,6 @@ public class OrientationHypercubeModule : MonoBehaviour {
         Log($"Red: {fromFaces[0]} to {actualToFaces[0]}.");
         Log($"Green: {fromFaces[1]} to {actualToFaces[1]}.");
         Log($"Blue: {fromFaces[2]} to {actualToFaces[2]}.");
-
         return actualToFaces.Where((dir, ind) => dir != expectedToFaces[ind]).Count() == 0;
     }
 
@@ -420,5 +428,102 @@ public class OrientationHypercubeModule : MonoBehaviour {
             }
             yield return null;
         }
+    }
+
+#pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"Use '!{0} toggle' to toggle Rotation Preview Mode on and off | "
+                                            + "'!{0} highlight <face>' to highlight that face; chain highlights with spaces, "
+                                            + "eg. '!{0} highlight zig front right' | '!{0} press <button>' to press that button; "
+                                            + "chain up to five presses with spaces, eg. '!{0} press right counter left set' | "
+                                            + "'!{0} <colourblind/cb>' to toggle colourblind mode.";
+#pragma warning restore 414
+
+    private string[] _cbCommands = new string[] { "CB", "COLOURBLIND", "COLORBLIND" };
+    private string[] _buttonNames = new string[] { "LEFT", "RIGHT", "IN", "OUT", "CLOCK", "COUNTER", "SET" };
+    private string[] _faceNames = new string[] { "FRONT", "BOTTOM", "LEFT", "ZIG", "RIGHT", "ZAG", "BACK", "TOP" };
+
+    private IEnumerator ProcessTwitchCommand(string command) {
+        command = command.Trim().ToUpper();
+
+        if (_cbCommands.Contains(command)) {
+            yield return null;
+            _statusLightButton.OnInteract();
+            yield break;
+        }
+
+        if (command == "TOGGLE") {
+            yield return null;
+            _centrePanelButton.OnInteract();
+            yield return new WaitForSeconds(0.2f);
+            _centrePanelButton.OnHighlightEnded();
+        }
+
+        string[] commands = command.Split(' ');
+
+        if (commands.Length == 0) {
+            yield return "sendtochaterror That is an empty command!";
+        }
+
+        if (commands[0] == "PRESS") {
+            if (commands.Length == 1) {
+                yield return "sendtochaterror No buttons were specified.";
+            }
+            if (commands.Length > 6) {
+                yield return "sendtochaterror Cannot chain more than five button presses at once!";
+            }
+            if (_isRecovery && commands[1] != "SET") {
+                yield return "sendtochaterror {0}, button presses have no effect until after pressing Set again, or toggling Rotation Preview Mode. Command cancelled.";
+            }
+            for (int i = 1; i < commands.Length; i++) {
+                if (!_buttonNames.Contains(commands[i])) {
+                    yield return $"sendtochaterror '{commands[i]}' is not a valid button.";
+                }
+            }
+            yield return null;
+
+            for (int i = 1; i < commands.Length; i++) {
+                if (commands[i] == "SET") {
+                    _setButton.OnInteract();
+                    yield return new WaitForSeconds(0.1f);
+                    _setButton.OnInteractEnded();
+
+                    if (i + 1 < commands.Length) {
+                        yield return "sendtochat Stopped executing command after pressing Set.";
+                    }
+                    yield break;
+                }
+                else {
+                    _rotationButtons[Array.IndexOf(_buttonNames, commands[i])].OnInteract();
+                    yield return new WaitForSeconds(0.1f);
+                    _rotationButtons[Array.IndexOf(_buttonNames, commands[i])].OnInteractEnded();
+                }
+                yield return new WaitForSeconds(0.1f);
+            }
+        }
+        else if (commands[0] == "HIGHLIGHT") {
+            if (commands.Length == 1) {
+                yield return "sendtochaterror No faces were specified.";
+            }
+            for (int i = 1; i < commands.Length; i++) {
+                if (!_faceNames.Contains(commands[i])) {
+                    yield return $"sendtochaterror '{commands[i]}' is not a valid face.";
+                }
+            }
+            yield return null;
+
+            for (int i = 1; i < commands.Length; i++) {
+                _panel[Array.IndexOf(_faceNames, commands[i])].OnHighlight();
+                yield return new WaitForSeconds(1f);
+                _panel[Array.IndexOf(_faceNames, commands[i])].OnHighlightEnded();
+                yield return "trycancel";
+            }
+        }
+        else {
+            yield return "sendtochaterror Invalid command!";
+        }
+    }
+
+    private IEnumerator TwitchHandleForcedSolve() {
+        yield return null;
     }
 }
