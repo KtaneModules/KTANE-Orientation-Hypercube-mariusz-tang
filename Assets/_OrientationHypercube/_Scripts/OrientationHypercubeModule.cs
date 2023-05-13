@@ -117,7 +117,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
         else {
             Log($"Pressed {buttonName.ToLower()}.");
             _inputtedRotations.Add(GetRotationDigits(_buttonToRotation[buttonName]));
-            if (buttonName != "Left" && buttonName != "Right") {
+            if (buttonName != "LEFT" && buttonName != "RIGHT") {
                 // The observer can stay, move left, or move right with equal probability.
                 int rng = Rnd.Range(0, 3);
                 if (rng != 0) {
@@ -454,8 +454,6 @@ public class OrientationHypercubeModule : MonoBehaviour {
         if (command == "TOGGLE") {
             yield return null;
             _centrePanelButton.OnInteract();
-            yield return new WaitForSeconds(0.2f);
-            _centrePanelButton.OnHighlightEnded();
         }
 
         string[] commands = command.Split(' ');
@@ -513,7 +511,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
 
             for (int i = 1; i < commands.Length; i++) {
                 _panel[Array.IndexOf(_faceNames, commands[i])].OnHighlight();
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(1);
                 _panel[Array.IndexOf(_faceNames, commands[i])].OnHighlightEnded();
                 yield return "trycancel";
             }
@@ -523,7 +521,142 @@ public class OrientationHypercubeModule : MonoBehaviour {
         }
     }
 
+    // Each key points to the current position of the face whose initial position was the key's position.
+    private readonly Dictionary<string, string[]> _rotationsToButtonPresses = new Dictionary<string, string[]> {
+        { "XZ", new string[] { "RIGHT" } },
+        { "ZX", new string[] { "LEFT" } },
+        { "YZ", new string[] { "LEFT", "CLOCK", "RIGHT" } },
+        { "ZY", new string[] { "LEFT", "COUNTER", "RIGHT"  } },
+        { "XY", new string[] { "COUNTER" } },
+        { "YX", new string[] { "CLOCK" } },
+        { "WZ", new string[] { "OUT" } },
+        { "ZW", new string[] { "IN" } },
+        { "XW", new string[] { "RIGHT", "IN", "LEFT" } },
+        { "WX", new string[] { "RIGHT", "OUT", "LEFT" } },
+        { "YW", new string[] { "CLOCK", "LEFT", "OUT", "RIGHT", "COUNTER" } },
+        { "WY", new string[] { "CLOCK", "LEFT", "IN", "RIGHT", "COUNTER" } },
+    };
+    private Dictionary<string, string> _currentFaceMaps = new Dictionary<string, string>();
+    private string[] _fromFaces;
+    private string[] _toFaces;
+    private List<string> _rotationSequence = new List<string>();
+    private List<string> _buttonPressSequence = new List<string>();
+    private int _offsetRightPressCount = 0;
+
     private IEnumerator TwitchHandleForcedSolve() {
+        // The solving method is not super efficient in that it does not cancel opposite rotations etc, but it works :)
+        yield return WaitWhileBusy();
         yield return null;
+
+        if (_isPreviewMode) {
+            _centrePanelButton.OnInteract();
+            yield return WaitWhileBusy();
+        }
+
+        if (_isRecovery) {
+            yield return Press("SET");
+        }
+
+        _fromFaces = _readGenerator.FromFaces;
+        _toFaces = _readGenerator.ToFaces;
+        foreach (KeyValuePair<string, string> pair in _panelButtonDirections) {
+            _currentFaceMaps.Add(pair.Value, pair.Value);
+        }
+        foreach (string rotation in _inputtedRotations) {
+            UpdateRotationMap(rotation);
+        }
+
+        GenerateRotationSequence();
+        _rotationSequence.ForEach(r => _buttonPressSequence = _buttonPressSequence.Concat(_rotationsToButtonPresses[r]).ToList());
+
+        switch (_eyeRotation) {
+            case 0: break;
+            case 1: _buttonPressSequence.Insert(0, "RIGHT"); break;
+            case 2: _buttonPressSequence.Insert(0, "RIGHT"); _buttonPressSequence.Insert(0, "RIGHT"); break;
+            case 3: _buttonPressSequence.Insert(0, "LEFT"); break;
+        }
+        _offsetRightPressCount = _eyeRotation;
+
+        for (int i = 0; i < _buttonPressSequence.Count(); i++) {
+            if (_buttonPressSequence[i] != "") {
+                yield return Press(_buttonPressSequence[i]);
+                if ((4 + _eyeRotation - _offsetRightPressCount) % 4 == 1) {
+                    _buttonPressSequence.Insert(i + 1, "RIGHT");
+                }
+                else if ((4 + _eyeRotation - _offsetRightPressCount) % 4 == 3) {
+                    _buttonPressSequence.Insert(i + 1, "LEFT");
+                }
+                _offsetRightPressCount = _eyeRotation;
+            }
+        }
+
+        switch (_eyeRotation) {
+            case 0: break;
+            case 1: yield return Press("LEFT"); break;
+            case 2: yield return Press("LEFT"); yield return Press("LEFT"); break;
+            case 3: yield return Press("RIGHT"); break;
+        }
+
+        yield return Press("SET");
+    }
+
+    private void UpdateRotationMap(string rotation) {
+        var newFaceMaps = new Dictionary<string, string>();
+
+        foreach (KeyValuePair<string, string> pair in _currentFaceMaps) {
+            if (pair.Value[1] == rotation[0]) {
+                newFaceMaps.Add(pair.Key, $"{pair.Value[0]}{rotation[1]}");
+            }
+            else if (pair.Value[1] == rotation[1]) {
+                // Flip the sign.
+                newFaceMaps.Add(pair.Key, $"{"+-".Replace(pair.Value[0].ToString(), "")}{rotation[0]}");
+            }
+            else {
+                newFaceMaps.Add(pair.Key, pair.Value);
+            }
+        }
+        _currentFaceMaps = new Dictionary<string, string>(newFaceMaps);
+    }
+
+    private void GenerateRotationSequence() {
+        string rotation;
+        string unsolvedAxes = "XYZW";
+
+        for (int i = 0; i < 3; i++) {
+            string currentFace = _currentFaceMaps[_fromFaces[i]];
+            string currentTarget = _toFaces[i];
+
+            if (currentTarget != currentFace) {
+                // If this is an axis flip.
+                if (currentFace[1] == currentTarget[1]) {
+                    rotation = $"{currentFace[1]}{unsolvedAxes.Replace($"{currentFace[1]}", "")[0]}";
+                    _rotationSequence.Add(rotation);
+                    _rotationSequence.Add(rotation);
+                    UpdateRotationMap(rotation);
+                    UpdateRotationMap(rotation);
+                }
+                else {
+                    rotation = currentFace[0] == currentTarget[0] ? $"{currentFace[1]}{currentTarget[1]}" : $"{currentTarget[1]}{currentFace[1]}";
+                    _rotationSequence.Add(rotation);
+                    UpdateRotationMap(rotation);
+                }
+            }
+            unsolvedAxes = unsolvedAxes.Replace(currentTarget[1].ToString(), "");
+        }
+
+    }
+
+    private IEnumerator Press(string button) {
+        KMSelectable buttonToPress = button == "SET" ? _setButton : _rotationButtons[Array.IndexOf(_buttonNames, button)];
+        buttonToPress.OnInteract();
+        yield return new WaitForSeconds(0.1f);
+        buttonToPress.OnInteractEnded();
+        yield return new WaitForSeconds(0.1f);
+    }
+
+    private IEnumerator WaitWhileBusy() {
+        while (_isBusy) {
+            yield return true;
+        }
     }
 }
