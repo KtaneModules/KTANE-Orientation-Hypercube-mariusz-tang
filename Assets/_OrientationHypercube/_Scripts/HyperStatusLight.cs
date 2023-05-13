@@ -1,6 +1,6 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+
 using Rnd = UnityEngine.Random;
 
 public class HyperStatusLight : MonoBehaviour {

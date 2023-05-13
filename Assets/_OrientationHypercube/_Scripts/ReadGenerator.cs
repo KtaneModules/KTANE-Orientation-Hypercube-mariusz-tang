@@ -1,7 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using KModkit;
 using UnityEngine;
+
 using Rnd = UnityEngine.Random;
 
 public class ReadGenerator {

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using KModkit;
 using UnityEngine;
+
 using Rnd = UnityEngine.Random;
 
 public class Vertex : MonoBehaviour {
