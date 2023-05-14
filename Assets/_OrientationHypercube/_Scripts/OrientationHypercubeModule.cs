@@ -517,7 +517,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
             }
         }
         else {
-            yield return "sendtochaterror Invalid command!";
+            yield return "sendtochaterror Invalid command!"; // Probably Mar typed this command
         }
     }
 
@@ -536,15 +536,25 @@ public class OrientationHypercubeModule : MonoBehaviour {
         { "YW", new string[] { "CLOCK", "LEFT", "OUT", "RIGHT", "COUNTER" } },
         { "WY", new string[] { "CLOCK", "LEFT", "IN", "RIGHT", "COUNTER" } },
     };
+    private readonly Dictionary<string, string> _opposites = new Dictionary<string, string> {
+        { "LEFT", "RIGHT" },
+        { "RIGHT", "LEFT" },
+        { "IN", "OUT" },
+        { "OUT", "IN" },
+        { "CLOCK", "COUNTER" },
+        { "COUNTER", "CLOCK" },
+    };
     private Dictionary<string, string> _currentFaceMaps = new Dictionary<string, string>();
     private string[] _fromFaces;
     private string[] _toFaces;
     private List<string> _rotationSequence = new List<string>();
     private List<string> _buttonPressSequence = new List<string>();
     private int _offsetRightPressCount = 0;
+    private int _preOffsetRightShifts = 0;
 
     private IEnumerator TwitchHandleForcedSolve() {
         // The solving method is not super efficient in that it does not cancel opposite rotations etc, but it works :)
+        // EDIT: NOW IT DOES :D
         yield return WaitWhileBusy();
         yield return null;
 
@@ -577,20 +587,55 @@ public class OrientationHypercubeModule : MonoBehaviour {
         }
         _offsetRightPressCount = _eyeRotation;
 
+        CancelOppositeDirections();
+        CancelTripleRepeats();
+        CancelOppositeDirections();
+        TrimLeftRightRotationsFromEnd();
+
         for (int i = 0; i < _buttonPressSequence.Count(); i++) {
             if (_buttonPressSequence[i] != "") {
                 yield return Press(_buttonPressSequence[i]);
+
+                // Account for eye movement.
                 if ((4 + _eyeRotation - _offsetRightPressCount) % 4 == 1) {
-                    _buttonPressSequence.Insert(i + 1, "RIGHT");
+                    if (i + 1 < _buttonPressSequence.Count()) {
+                        if (_buttonPressSequence[i + 1] == "LEFT") {
+                            i++;
+                        }
+                        else if (i + 2 < _buttonPressSequence.Count() && _buttonPressSequence[i + 1] == "RIGHT" && _buttonPressSequence[i + 2] == "RIGHT") {
+                            yield return Press("LEFT");
+                            i += 2;
+                        }
+                        else {
+                            yield return Press("RIGHT");
+                        }
+                    }
+                    else {
+                        _preOffsetRightShifts--;
+                    }
                 }
                 else if ((4 + _eyeRotation - _offsetRightPressCount) % 4 == 3) {
-                    _buttonPressSequence.Insert(i + 1, "LEFT");
+                    if (i + 1 < _buttonPressSequence.Count()) {
+                        if (_buttonPressSequence[i + 1] == "RIGHT") {
+                            i++;
+                        }
+                        else if (i + 2 < _buttonPressSequence.Count() && _buttonPressSequence[i + 1] == "LEFT" && _buttonPressSequence[i + 2] == "LEFT") {
+                            yield return Press("RIGHT");
+                            i += 2;
+                        }
+                        else {
+                            yield return Press("LEFT");
+                        }
+                    }
+                    else {
+                        _preOffsetRightShifts++;
+                    }
                 }
                 _offsetRightPressCount = _eyeRotation;
             }
         }
 
-        switch (_eyeRotation) {
+        switch (((_offsetRightPressCount + _preOffsetRightShifts) % 4 + 4) % 4) {
             case 0: break;
             case 1: yield return Press("LEFT"); break;
             case 2: yield return Press("LEFT"); yield return Press("LEFT"); break;
@@ -598,6 +643,43 @@ public class OrientationHypercubeModule : MonoBehaviour {
         }
 
         yield return Press("SET");
+    }
+
+    private void CancelOppositeDirections() {
+        for (int i = 0; i < _buttonPressSequence.Count() - 1; i++) {
+            if (_buttonPressSequence[i] == _opposites[_buttonPressSequence[i + 1]]) {
+                _buttonPressSequence.RemoveRange(i, 2);
+                CancelOppositeDirections();
+                break;
+            }
+        }
+    }
+
+    private void CancelTripleRepeats() {
+        for (int i = 0; i < _buttonPressSequence.Count() - 2; i++) {
+            if (_buttonPressSequence[i] == _buttonPressSequence[i + 1] && _buttonPressSequence[i] == _buttonPressSequence[i + 2]) {
+                _buttonPressSequence.Insert(i + 3, _opposites[_buttonPressSequence[i]]);
+                _buttonPressSequence.RemoveRange(i, 3);
+                CancelTripleRepeats();
+                break;
+            }
+        }
+    }
+
+    private void TrimLeftRightRotationsFromEnd() {
+        for (int i = 0, count = _buttonPressSequence.Count(); i < count; i++) {
+            if (_buttonPressSequence[count - (i + 1)] == "LEFT") {
+                _preOffsetRightShifts++;
+                _buttonPressSequence.RemoveAt(count - (i + 1));
+            }
+            else if (_buttonPressSequence[count - (i + 1)] == "RIGHT") {
+                _preOffsetRightShifts--;
+                _buttonPressSequence.RemoveAt(count - (i + 1));
+            }
+            else {
+                return;
+            }
+        }
     }
 
     private void UpdateRotationMap(string rotation) {
