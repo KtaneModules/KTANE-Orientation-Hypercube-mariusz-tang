@@ -6,22 +6,23 @@ using Rnd = UnityEngine.Random;
 
 public class ReadGenerator {
 
-    private const string AXES = "XYZW";
-    private readonly Dictionary<char, string> AxisBits = new Dictionary<char, string> {
+    private const string _axes = "XYZW";
+    private readonly Dictionary<char, string> _axisBits = new Dictionary<char, string> {
         { 'X', "00" },
         { 'Y', "01" },
         { 'Z', "10" },
         { 'W', "11" },
     };
-    private readonly Dictionary<string, string> ColourLetters = new Dictionary<string, string> {
-        { "000","K" },
-        { "001","B" },
-        { "010","G" },
-        { "011","C" },
-        { "100","R" },
-        { "101","M" },
-        { "110","Y" },
-        { "111","W" },
+    // Use full words for souv support.
+    private readonly Dictionary<string, string> _colourLetters = new Dictionary<string, string> {
+        { "000", "black" },
+        { "001", "blue" },
+        { "010", "green" },
+        { "011", "cyan" },
+        { "100", "red" },
+        { "101", "magenta" },
+        { "110", "yellow" },
+        { "111", "white" },
     };
 
     private OrientationHypercubeModule _module;
@@ -48,11 +49,6 @@ public class ReadGenerator {
         DoSerialNumberInversions();
         DoShifts();
 
-        _reversedLogging.Reverse();
-        foreach (string message in _reversedLogging) {
-            _module.Log(message);
-        }
-
         for (int i = 0; i < 4; i++) {
             int rValue = _positiveBinaries[0][i] - '0';
             int gValue = _positiveBinaries[1][i] - '0';
@@ -61,7 +57,7 @@ public class ReadGenerator {
 
             string face = $"+{"XYZW"[i]}";
             _faceColours.Add(face, newColour);
-            _cbTexts.Add(face, ColourLetters[$"{_positiveBinaries[0][i]}{_positiveBinaries[1][i]}{_positiveBinaries[2][i]}"]);
+            _cbTexts.Add(face, _colourLetters[$"{_positiveBinaries[0][i]}{_positiveBinaries[1][i]}{_positiveBinaries[2][i]}"]);
 
             rValue = _negativeBinaries[0][i] - '0';
             gValue = _negativeBinaries[1][i] - '0';
@@ -70,7 +66,13 @@ public class ReadGenerator {
 
             face = $"-{"XYZW"[i]}";
             _faceColours.Add(face, newColour);
-            _cbTexts.Add(face, ColourLetters[$"{_negativeBinaries[0][i]}{_negativeBinaries[1][i]}{_negativeBinaries[2][i]}"]);
+            _cbTexts.Add(face, _colourLetters[$"{_negativeBinaries[0][i]}{_negativeBinaries[1][i]}{_negativeBinaries[2][i]}"]);
+        }
+
+        GetFaceColourLogging();
+        _reversedLogging.Reverse();
+        foreach (string message in _reversedLogging) {
+            _module.Log(message);
         }
     }
 
@@ -109,7 +111,7 @@ public class ReadGenerator {
     private void GetFinalBinaries() {
         for (int i = 0; i < 3; i++) {
             int thirdBit = Rnd.Range(0, 2);
-            _negativeBinaries[i] = AxisBits[FromFaces[i][1]];
+            _negativeBinaries[i] = _axisBits[FromFaces[i][1]];
             _negativeBinaries[i] += thirdBit;
 
             if (FromFaces[i][0] == '-') {
@@ -120,7 +122,7 @@ public class ReadGenerator {
             }
 
             thirdBit = Rnd.Range(0, 2);
-            _positiveBinaries[i] = AxisBits[ToFaces[i][1]];
+            _positiveBinaries[i] = _axisBits[ToFaces[i][1]];
             _positiveBinaries[i] += thirdBit;
 
             if (ToFaces[i][0] == '-') {
@@ -139,13 +141,13 @@ public class ReadGenerator {
         string presentAxes = string.Empty;
 
         for (int i = 0; i < 4; i++) {
-            if (serial.Contains(AXES[i].ToString())) {
+            if (serial.Contains(_axes[i].ToString())) {
                 // Invert bits in position i.
                 for (int j = 0; j < 3; j++) {
                     _positiveBinaries[j] = _positiveBinaries[j].Insert(i, (1 - (_positiveBinaries[j][i] - '0')).ToString()).Remove(i + 1, 1);
                     _negativeBinaries[j] = _negativeBinaries[j].Insert(i, (1 - (_negativeBinaries[j][i] - '0')).ToString()).Remove(i + 1, 1);
                 }
-                presentAxes += AXES[i];
+                presentAxes += _axes[i];
             }
         }
 
@@ -169,7 +171,24 @@ public class ReadGenerator {
             _positiveBinaries[i] = _positiveBinaries[i].Substring(pShift) + _positiveBinaries[i].Substring(0, pShift);
         }
 
-        LogCurrentBinaryState("The faces read:");
+        LogCurrentBinaryState("The initial binaries are:");
+    }
+
+    private void GetFaceColourLogging() {
+        var faceNames = new Dictionary<string, string> {
+            {"+W", "zag"},
+            {"-W", "zig"},
+            {"+Z", "back"},
+            {"-Z", "front"},
+            {"+Y", "top"},
+            {"-Y", "bottom"},
+            {"+X", "right"},
+            {"-X", "left"}
+        };
+
+        foreach (string face in faceNames.Keys) {
+            _reversedLogging.Add($"The {faceNames[face]} face is {_cbTexts[face]}.");
+        }
     }
 
     private void LogCurrentBinaryState(string message) {
@@ -183,7 +202,11 @@ public class ReadGenerator {
     }
 
     public string GetCbText(string direction) {
-        return _cbTexts[direction];
+        string cbText = _cbTexts[direction];
+        if (cbText == "black") {
+            return "K";
+        }
+        return _cbTexts[direction][0].ToString().ToUpper();
     }
 
     private Color GetColourFromRGB(int rValue, int gValue, int bValue) {

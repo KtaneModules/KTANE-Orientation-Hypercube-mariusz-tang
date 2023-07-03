@@ -49,6 +49,9 @@ public class OrientationHypercubeModule : MonoBehaviour {
 
     private static int _moduleCount = 0;
     private int _moduleId;
+    // Souv info.
+    private bool _isSolved = false;
+    private string _initialEyePosition;
 
     private KMAudio _audio;
     private KMBombModule _module;
@@ -98,11 +101,13 @@ public class OrientationHypercubeModule : MonoBehaviour {
         _hypercube.SetColours(_readGenerator.GetFaceColours());
 
         _eyeRotation = 0;
-        for (int i = 0, j = Rnd.Range(0, 4); i < j; i++) {
+        int rotations = Rnd.Range(0, 4);
+        for (int i = 0, j = rotations; i < j; i++) {
             ShiftPerspectiveRight();
         }
+        _initialEyePosition = _eyeDirections[_eyeRotation];
         Log("-=-=-=- Start -=-=-=-");
-        Log($"The observer starts off facing the {_eyeDirections[_eyeRotation]} face.");
+        Log($"The observer starts off facing the {_initialEyePosition} face.");
     }
 
     private void HandleRotationPress(string buttonName) {
@@ -383,6 +388,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
     }
 
     private IEnumerator SolveAnimation() {
+        _isSolved = true;
         _isBusy = true;
 
         _hypercube.UpdateColours();
