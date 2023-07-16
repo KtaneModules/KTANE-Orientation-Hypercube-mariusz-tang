@@ -68,7 +68,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
     private bool _isRecovery = false;
     private bool _isBusy = false;
     private bool _isMuted = false;
-    private bool _cbModeOn = false;
+    private bool _cbModeActive = false;
 
     private void Awake() {
         _moduleId = _moduleCount++;
@@ -76,6 +76,8 @@ public class OrientationHypercubeModule : MonoBehaviour {
         _audio = GetComponent<KMAudio>();
         _module = GetComponent<KMBombModule>();
         _readGenerator = new ReadGenerator(this);
+
+        _cbModeActive = GetComponent<KMColorblindMode>().ColorblindModeActive;
 
         AssignInteractionHandlers();
     }
@@ -93,7 +95,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
             panelButton.OnHighlightEnded += delegate () { HandleUnhover(panelButton); };
         }
         _centrePanelButton.OnInteract += delegate () { StartCoroutine(HandleCentrePress()); return false; };
-        _statusLightButton.OnInteract += delegate () { PlaySound("Rotation"); _cbModeOn = !_cbModeOn; return false; };
+        _statusLightButton.OnInteract += delegate () { PlaySound("Rotation"); _cbModeActive = !_cbModeActive; return false; };
     }
 
     private void Start() {
@@ -200,7 +202,7 @@ public class OrientationHypercubeModule : MonoBehaviour {
     private void Highlight() {
         string direction;
         _hypercube.HighlightFace(_highlightedFace, out direction);
-        if (_cbModeOn) {
+        if (_cbModeActive) {
             if (!_isRecovery) {
                 _cbText.text = _readGenerator.GetCbText(_highlightedFace);
             }

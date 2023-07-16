@@ -24,7 +24,7 @@ MonoBehaviour:
     Manual can be found at ktane.timwi.de or in the manuals folder of your game.
 
 
-    Report bugs to Kuro#2011 on Discord.'
+    Report bugs to ku.ro on Discord.'
   version: 1
   outputFolder: build
   previewImage: {fileID: 2800000, guid: 15ad8c26bfeef2a45a26154537f31927, type: 3}

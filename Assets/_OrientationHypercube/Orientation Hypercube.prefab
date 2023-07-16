@@ -134,6 +134,7 @@ GameObject:
   - component: {fileID: 114497012224334278}
   - component: {fileID: 114777587004155786}
   - component: {fileID: 114012032898328022}
+  - component: {fileID: 114094728152830298}
   - component: {fileID: 114694501075603716}
   m_Layer: 0
   m_Name: Orientation Hypercube
@@ -3283,6 +3284,18 @@ MonoBehaviour:
   AllowSelectionWrapY: 0
   ForceSelectionHighlight: 0
   ForceInteractionHighlight: 0
+--- !u!114 &114094728152830298
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1143118052445008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1cfb889a07d5fd4e9baed7960bb397f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _colorblindMode: 0
 --- !u!114 &114096500082426212
 MonoBehaviour:
   m_ObjectHideFlags: 1
