@@ -442,7 +442,8 @@ public class OrientationHypercubeModule : MonoBehaviour {
     private readonly string TwitchHelpMessage = @"Use '!{0} toggle' to toggle Rotation Preview Mode on and off | "
                                             + "'!{0} highlight <face>' to highlight that face; chain highlights with spaces, "
                                             + "eg. '!{0} highlight zig front right' | '!{0} press <button>' to press that button; "
-                                            + "chain up to five presses with spaces, eg. '!{0} press right counter left set' | "
+                                            + "chain up to five presses with spaces, eg. '!{0} press right counter left set'; "
+                                            + "the module will NOT stop processing the command if the observer moves | "
                                             + "'!{0} <colourblind/cb>' to toggle colourblind mode.";
 #pragma warning restore 414
 
